@@ -1,6 +1,7 @@
 package toasty.messageinabottle;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
@@ -51,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 GeoPoint location = myLocationOverlay.getMyLocation();
+                startActivity(new Intent(getApplicationContext(), MessageDetailActivity.class));
                 Toast.makeText(getApplicationContext(), "location" + location, Toast.LENGTH_SHORT).show();
             }
         });
