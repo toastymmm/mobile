@@ -3,24 +3,23 @@ package toasty.messageinabottle;
 import android.content.Context;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.Button;
-import android.widget.Toast;
 
 import org.osmdroid.config.Configuration;
 import org.osmdroid.util.BoundingBox;
+import org.osmdroid.views.CustomZoomButtonsController;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.MapView.OnFirstLayoutListener;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
-import static android.view.View.OnClickListener;
-
 public class MainActivity extends AppCompatActivity {
 
     private MapView mapView;
     private MyLocationNewOverlay myLocationOverlay;
+    private FloatingActionButton addMessageButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
         myLocationOverlay.enableMyLocation();
         mapView.getOverlays().add(myLocationOverlay);
 
+        mapView.getZoomController().setVisibility(CustomZoomButtonsController.Visibility.NEVER);
+
         mapView.addOnFirstLayoutListener(new OnFirstLayoutListener() {
             @Override
             public void onFirstLayout(View v, int left, int top, int right, int bottom) {
@@ -43,13 +44,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Button button = findViewById(R.id.button);
-        button.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(MainActivity.this, mapView.getBoundingBox().toString(), Toast.LENGTH_LONG).show();
-            }
-        });
+        addMessageButton = findViewById(R.id.addMessageButton);
     }
 
     @Override
