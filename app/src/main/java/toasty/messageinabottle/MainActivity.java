@@ -6,9 +6,11 @@ import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.Toast;
 
 import org.osmdroid.config.Configuration;
 import org.osmdroid.util.BoundingBox;
+import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.CustomZoomButtonsController;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.MapView.OnFirstLayoutListener;
@@ -45,6 +47,13 @@ public class MainActivity extends AppCompatActivity {
         });
 
         addMessageButton = findViewById(R.id.addMessageButton);
+        addMessageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                GeoPoint location = myLocationOverlay.getMyLocation();
+                Toast.makeText(getApplicationContext(), "location" + location, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
