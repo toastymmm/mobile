@@ -15,18 +15,21 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
+            android:name=".MapActivity"
+            android:label="@string/title_activity_map"
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="toasty.messageinabottle.MAP_ACTIVITY" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".MessageDetailActivity"
             android:label="@string/title_activity_message_detail"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="toasty.messageinabottle.MESSAGE_DETAIL_ACTIVITY" />
-            </intent-filter>
-        </activity>
-        <activity android:name=".MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
     </application>
