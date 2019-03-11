@@ -167,11 +167,14 @@ public class MapActivity extends AppCompatActivity
             loggedIn = false;
             updateLoginVisibility();
         } else if (id == R.id.history) {
-
+            Intent intent = new Intent(this, MessageHistoryActivity.class);
+            startActivity(intent);
         } else if (id == R.id.saved) {
-
+            Intent intent = new Intent(this, SavedMessagesActivity.class);
+            startActivity(intent);
         } else if (id == R.id.about) {
-
+            Intent intent = new Intent(this, AboutActivity.class);
+            startActivity(intent);
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
