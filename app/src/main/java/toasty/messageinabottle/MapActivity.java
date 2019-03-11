@@ -166,17 +166,11 @@ public class MapActivity extends AppCompatActivity
         } else if (id == R.id.logout) {
             loggedIn = false;
             updateLoginVisibility();
-        } else if (id == R.id.nav_camera) {
+        } else if (id == R.id.history) {
 
-        } else if (id == R.id.nav_gallery) {
+        } else if (id == R.id.saved) {
 
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
+        } else if (id == R.id.about) {
 
         }
 
