@@ -42,6 +42,7 @@ public class MapActivity extends AppCompatActivity
     private boolean loggedIn = false;
     private MenuItem loginMenuItem;
     private MenuItem logoutMenuItem;
+    private MenuItem historyMenuItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +75,7 @@ public class MapActivity extends AppCompatActivity
 
         loginMenuItem = navigationView.getMenu().findItem(R.id.login);
         logoutMenuItem = navigationView.getMenu().findItem(R.id.logout);
+        historyMenuItem = navigationView.getMenu().findItem(R.id.history);
 
         mapView = findViewById(R.id.map);
         mapView.setTileSource(TileSourceFactory.MAPNIK);
@@ -197,5 +199,6 @@ public class MapActivity extends AppCompatActivity
     private void updateLoginVisibility() {
         loginMenuItem.setVisible(!loggedIn);
         logoutMenuItem.setVisible(loggedIn);
+        historyMenuItem.setVisible(loggedIn);
     }
 }

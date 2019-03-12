@@ -27,4 +27,6 @@
     <string name="message_history">Message History</string>
     <string name="saved_messages">Saved Messages</string>
     <string name="about">About Us</string>
+    <string name="date_created">Date Created:</string>
+    <string name="date_saved">Date Saved:</string>
 </resources>

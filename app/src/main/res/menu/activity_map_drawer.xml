@@ -16,7 +16,8 @@
         <item
             android:id="@+id/history"
             android:icon="@android:drawable/ic_menu_recent_history"
-            android:title="@string/message_history" />
+            android:title="@string/message_history"
+            android:visible="false" />
         <item
             android:id="@+id/saved"
             android:icon="@android:drawable/btn_star_big_off"

@@ -2,28 +2,32 @@ package toasty.messageinabottle.data;
 
 import org.osmdroid.util.GeoPoint;
 
+import java.util.Date;
 import java.util.Objects;
 
 public class Message extends GeoPoint {
+
     private final String msg;
-    private final boolean owned;
+    private final User author;
+    private final Date created;
 
-    public Message(String msg, GeoPoint point) {
-        this(msg, point, false);
-    }
-
-    public Message(String msg, GeoPoint point, boolean owned) {
+    public Message(String msg, GeoPoint point, User author, Date created) {
         super(point);
         this.msg = msg;
-        this.owned = owned;
+        this.author = author;
+        this.created = created;
     }
 
     public String getMsg() {
         return msg;
     }
 
-    public boolean isOwned() {
-        return owned;
+    public User getAuthor() {
+        return author;
+    }
+
+    public Date getCreated() {
+        return created;
     }
 
     @Override
@@ -32,12 +36,13 @@ public class Message extends GeoPoint {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         Message message = (Message) o;
-        return owned == message.owned &&
-                Objects.equals(msg, message.msg);
+        return Objects.equals(msg, message.msg) &&
+                Objects.equals(author, message.author) &&
+                Objects.equals(created, message.created);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), msg, owned);
+        return Objects.hash(super.hashCode(), msg, author, created);
     }
 }
