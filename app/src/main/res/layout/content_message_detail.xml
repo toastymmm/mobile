@@ -27,7 +27,7 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/textView"
+                android:id="@+id/message_detail_message_contents"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -43,7 +43,7 @@
     </ScrollView>
 
     <TextView
-        android:id="@+id/textView2"
+        android:id="@+id/message_detail_author"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -53,12 +53,12 @@
         app:layout_constraintTop_toBottomOf="@+id/scrollView2" />
 
     <TextView
-        android:id="@+id/textView3"
+        android:id="@+id/message_detail_date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:text="01/01/2019"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView2" />
+        app:layout_constraintTop_toBottomOf="@+id/message_detail_author" />
 </android.support.constraint.ConstraintLayout>

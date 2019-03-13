@@ -1,15 +1,30 @@
 package toasty.messageinabottle.data;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import org.osmdroid.util.GeoPoint;
 
 import java.util.Date;
 import java.util.Objects;
 
-public class Message extends GeoPoint {
+public class Message extends GeoPoint implements Parcelable {
 
     private final String msg;
     private final User author;
     private final Date created;
+
+    public static final Parcelable.Creator<Message> CREATOR = new Parcelable.Creator<Message>() {
+        @Override
+        public Message createFromParcel(Parcel source) {
+            return new Message(source);
+        }
+
+        @Override
+        public Message[] newArray(int size) {
+            return new Message[size];
+        }
+    };
 
     public Message(String msg, GeoPoint point, User author, Date created) {
         super(point);
@@ -44,5 +59,23 @@ public class Message extends GeoPoint {
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), msg, author, created);
+    }
+
+    public Message(Parcel in) {
+        this(in.readString(), GeoPoint.CREATOR.createFromParcel(in), User.CREATOR.createFromParcel(in), new Date(in.readLong()));
+
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel out, int flags) {
+        out.writeString(msg);
+        super.writeToParcel(out, flags);
+        author.writeToParcel(out, flags);
+        out.writeSerializable(created);
     }
 }
