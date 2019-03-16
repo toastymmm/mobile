@@ -1,6 +1,5 @@
 package toasty.messageinabottle;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -39,10 +38,13 @@ public class MessageDetailActivity extends AppCompatActivity {
         author = findViewById(R.id.message_detail_author);
         date = findViewById(R.id.message_detail_date);
 
-        Intent intent = getIntent();
-        Message message = intent.getParcelableExtra(MESSAGE_KEY);
-        contents.setText(message.getMsg());
-        author.setText(message.getAuthor().getUsername());
-        date.setText(message.getCreated().toString());
+        Message message = getIntent().getParcelableExtra(MESSAGE_KEY);
+        if (message == null) {
+            Snackbar.make(fab, "No message passed to Activity", Snackbar.LENGTH_LONG).show();
+        } else {
+            contents.setText(message.getMsg());
+            author.setText(message.getAuthor().getUsername());
+            date.setText(message.getCreated().toString());
+        }
     }
 }
