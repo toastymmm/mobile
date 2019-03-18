@@ -27,9 +27,6 @@ import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.CustomZoomButtonsController;
 import org.osmdroid.views.MapView;
-import org.osmdroid.views.overlay.Marker;
-import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
-import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
 public class MapActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -39,7 +36,6 @@ public class MapActivity extends AppCompatActivity
     public static final String LOGGED_IN_STATE_KEY = "LOGGED_IN";
 
     private MapView mapView;
-    private MyLocationNewOverlay myLocationOverlay;
 
     private boolean loggedIn = false;
     private MenuItem loginMenuItem;
@@ -82,9 +78,12 @@ public class MapActivity extends AppCompatActivity
         mapView = findViewById(R.id.map);
         mapView.setTileSource(TileSourceFactory.MAPNIK);
 
-        myLocationOverlay = new MyLocationNewOverlay(new GpsMyLocationProvider(ctx), mapView);
-        myLocationOverlay.enableMyLocation();
-        mapView.getOverlays().add(myLocationOverlay);
+        MessageManager messageManager = new MessageManager();
+
+        WatchableMyLocationOverlay locationOverlay = new WatchableMyLocationOverlay(mapView);
+        locationOverlay.addConsumer(messageManager);
+        locationOverlay.enableMyLocation();
+        mapView.getOverlays().add(locationOverlay);
 
         mapView.getZoomController().setVisibility(CustomZoomButtonsController.Visibility.NEVER);
 
@@ -95,7 +94,8 @@ public class MapActivity extends AppCompatActivity
             }
         });
 
-        Marker startMarker = new BottleMarker(mapView);
+        BottleMarker startMarker = new BottleMarker(mapView);
+        locationOverlay.addConsumer(startMarker);
         startMarker.setPosition(new GeoPoint(30.0, -80.0));
         mapView.getOverlays().add(startMarker);
     }
