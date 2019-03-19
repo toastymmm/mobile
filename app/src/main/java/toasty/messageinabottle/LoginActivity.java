@@ -25,7 +25,7 @@ public class LoginActivity extends AppCompatActivity {
 
         Button loginButton=findViewById(R.id.loginButton);
         final EditText emailField=findViewById(R.id.loginEmailField);
-        final EditText passwordField=findViewById(R.id.loginEmailField);
+        final EditText passwordField=findViewById(R.id.loginPasswordField);
         final LoginActivity toClose=this;
 
         loginButton.setOnClickListener(new View.OnClickListener() {
@@ -41,6 +41,9 @@ public class LoginActivity extends AppCompatActivity {
                 }
                 else {
                     Log.d(tag, "Invalid password.");
+                    emailField.setText("");
+                    passwordField.setText("");
+                    emailField.requestFocus();
                 }
             }
         });

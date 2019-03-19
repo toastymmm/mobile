@@ -17,6 +17,8 @@ public class MockBackend implements Backend {
 
     @Override
     public void login(String username, String password) throws AuthenticationException {
+        if (username.startsWith("z"))
+            throw new AuthenticationException();
         loggedIn = true;
     }
 
