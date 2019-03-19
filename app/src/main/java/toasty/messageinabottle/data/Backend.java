@@ -8,6 +8,7 @@ import toasty.messageinabottle.exceptions.AuthenticationException;
 import toasty.messageinabottle.exceptions.PermissionException;
 
 public interface Backend {
+
     void login(String username, String password) throws AuthenticationException;
 
     void logout() throws AuthenticationException;
@@ -19,4 +20,5 @@ public interface Backend {
     void updateMessage(Message message) throws PermissionException;
 
     List<Message> getMessagesInBox(BoundingBox box);
+
 }

@@ -28,6 +28,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        if (LoginActivity.getLoggedInUser()==null) {
+            Intent intent=new Intent(this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+        }
+
         Context ctx = getApplicationContext();
         Configuration.getInstance().load(ctx, PreferenceManager.getDefaultSharedPreferences(ctx));
 
@@ -56,6 +62,8 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "location" + location, Toast.LENGTH_SHORT).show();
             }
         });
+
+
     }
 
     @Override

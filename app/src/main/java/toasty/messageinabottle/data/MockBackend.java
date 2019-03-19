@@ -6,13 +6,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import toasty.messageinabottle.exceptions.AuthenticationException;
+
 public class MockBackend implements Backend {
 
     private List<Message> messages = new ArrayList<>();
     private boolean loggedIn = false;
 
+    private static MockBackend instance;
+
     @Override
-    public void login(String username, String password) {
+    public void login(String username, String password) throws AuthenticationException {
         loggedIn = true;
     }
 
@@ -41,4 +45,9 @@ public class MockBackend implements Backend {
     public List<Message> getMessagesInBox(BoundingBox box) {
         return Collections.unmodifiableList(messages);
     }
+
+    public static MockBackend getInstance() {
+        return instance==null?instance=new MockBackend():instance;
+    }
+
 }
