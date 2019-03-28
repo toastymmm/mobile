@@ -29,4 +29,8 @@
     <string name="about">About Us</string>
     <string name="date_created">Date Created:</string>
     <string name="date_saved">Date Saved:</string>
+    <string name="toast_icon_description">Toast Icon</string>
+    <string name="team_toast">Team Toast</string>
+    <string name="semester_description">Spring Semester 2019</string>
+    <string name="team_members">Charles Bailey (API/Backend)\nJasper Chong (API/Backend)\nNikolaus Dunn (API/Backend/Web)\nBradley Glaser (Mobile/Project Manager)\nDavid Harmeyer(Mobile)\nHeath Milligan (Web)\nSydney Munro (Backend/Web)\nJuan Parra (Web)\nSpencer Ross (Mobile)</string>
 </resources>
