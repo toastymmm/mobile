@@ -28,6 +28,13 @@ import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.CustomZoomButtonsController;
 import org.osmdroid.views.MapView;
 
+import java.util.Date;
+import java.util.Random;
+
+import toasty.messageinabottle.data.Message;
+import toasty.messageinabottle.data.User;
+import toasty.messageinabottle.distance.MessageManager;
+
 public class MapActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -41,6 +48,8 @@ public class MapActivity extends AppCompatActivity
     private MenuItem loginMenuItem;
     private MenuItem logoutMenuItem;
     private MenuItem historyMenuItem;
+
+    private MessageManager messageManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,12 +87,12 @@ public class MapActivity extends AppCompatActivity
         mapView = findViewById(R.id.map);
         mapView.setTileSource(TileSourceFactory.MAPNIK);
 
-        MessageManager messageManager = new MessageManager();
-
         WatchableMyLocationOverlay locationOverlay = new WatchableMyLocationOverlay(mapView);
-        locationOverlay.addConsumer(messageManager);
         locationOverlay.enableMyLocation();
         mapView.getOverlays().add(locationOverlay);
+
+        messageManager = new MessageManager(mapView);
+        locationOverlay.addConsumer(messageManager);
 
         mapView.getZoomController().setVisibility(CustomZoomButtonsController.Visibility.NEVER);
 
@@ -94,10 +103,14 @@ public class MapActivity extends AppCompatActivity
             }
         });
 
-        BottleMarker startMarker = new BottleMarker(mapView);
-        locationOverlay.addConsumer(startMarker);
-        startMarker.setPosition(new GeoPoint(30.0, -80.0));
-        mapView.getOverlays().add(startMarker);
+        Random rand = new Random();
+        for (int i = 0; i < 1000; i++) {
+            double lat = rand.nextDouble() * (33 - 24) + 24;
+            double lon = rand.nextDouble() * (84 - 78) - 84;
+            GeoPoint point = new GeoPoint(lat, lon);
+            Message message = new Message("foobar", point, new User("brad"), new Date());
+            messageManager.addMessage(message);
+        }
     }
 
     @Override
