@@ -13,8 +13,7 @@ public class Message extends GeoPoint implements Parcelable {
     private final String msg;
     private final User author;
     private final Date created;
-
-    public static final Parcelable.Creator<Message> CREATOR = new Parcelable.Creator<Message>() {
+    public static final Creator<Message> CREATOR = new Creator<Message>() {
         @Override
         public Message createFromParcel(Parcel source) {
             return new Message(source);
@@ -25,6 +24,7 @@ public class Message extends GeoPoint implements Parcelable {
             return new Message[size];
         }
     };
+    private boolean favorite = false; // TODO take from inputs
 
     public Message(String msg, GeoPoint point, User author, Date created) {
         super(point);
@@ -51,14 +51,15 @@ public class Message extends GeoPoint implements Parcelable {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         Message message = (Message) o;
-        return Objects.equals(msg, message.msg) &&
-                Objects.equals(author, message.author) &&
-                Objects.equals(created, message.created);
+        return isFavorite() == message.isFavorite() &&
+                Objects.equals(getMsg(), message.getMsg()) &&
+                Objects.equals(getAuthor(), message.getAuthor()) &&
+                Objects.equals(getCreated(), message.getCreated());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), msg, author, created);
+        return Objects.hash(super.hashCode(), getMsg(), getAuthor(), getCreated(), isFavorite());
     }
 
     public Message(Parcel in) {
@@ -77,5 +78,13 @@ public class Message extends GeoPoint implements Parcelable {
         super.writeToParcel(out, flags);
         author.writeToParcel(out, flags);
         out.writeSerializable(created);
+    }
+
+    public boolean isFavorite() {
+        return favorite;
+    }
+
+    public void setFavorite(boolean favorite) {
+        this.favorite = favorite;
     }
 }
