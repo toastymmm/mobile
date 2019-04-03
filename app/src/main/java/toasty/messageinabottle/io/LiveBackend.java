@@ -19,20 +19,29 @@ import toasty.messageinabottle.data.remote.RemoteMessage;
 
 public class LiveBackend {
 
+    private static final OkHttpClient client = new OkHttpClient();
+    private static final Gson gson = new Gson();
+
     public static List<Message> messages(IGeoPoint geoPoint) throws IOException {
-        OkHttpClient okHttpClient = new OkHttpClient();
         HttpUrl url = HttpUrl.get("http://toastymmm.hopto.org/api/messages")
                 .newBuilder()
                 .addQueryParameter("lat", Double.toString(geoPoint.getLatitude()))
                 .addQueryParameter("lon", Double.toString(geoPoint.getLongitude()))
                 .build();
+
         Request req = new Request.Builder().get().url(url).build();
-        try (Response response = okHttpClient.newCall(req).execute()) {
-            Gson gson = new Gson();
+
+        try (Response response = client.newCall(req).execute()) {
+            if (response.body() == null) {
+                return new ArrayList<>();
+            }
+
+            // Parse the response body using Gson
             List<RemoteMessage> messages = gson.fromJson(response.body().charStream(),
                     new TypeToken<ArrayList<RemoteMessage>>() {
                     }.getType());
 
+            // Convert the RemoteMessages into Messages
             List<Message> result = new ArrayList<>();
             for (RemoteMessage rm : messages) {
                 try {
