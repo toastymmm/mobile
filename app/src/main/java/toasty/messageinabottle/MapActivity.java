@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -16,6 +18,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,16 +27,19 @@ import android.widget.Toast;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.BoundingBox;
-import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.CustomZoomButtonsController;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.mylocation.IMyLocationProvider;
 
-import java.util.Date;
-import java.util.Random;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import toasty.messageinabottle.data.Message;
-import toasty.messageinabottle.data.User;
-import toasty.messageinabottle.distance.MessageManager;
+import toasty.messageinabottle.io.HeartbeatRunnable;
+import toasty.messageinabottle.map.MessageManager;
+import toasty.messageinabottle.map.WatchableMyLocationOverlay;
 
 public class MapActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -49,7 +55,9 @@ public class MapActivity extends AppCompatActivity
     private MenuItem logoutMenuItem;
     private MenuItem historyMenuItem;
 
+    private IMyLocationProvider locationProvider;
     private MessageManager messageManager;
+    private ScheduledExecutorService executor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +96,7 @@ public class MapActivity extends AppCompatActivity
         mapView.setTileSource(TileSourceFactory.MAPNIK);
 
         WatchableMyLocationOverlay locationOverlay = new WatchableMyLocationOverlay(mapView);
+        locationProvider = locationOverlay.getMyLocationProvider();
         locationOverlay.enableMyLocation();
         mapView.getOverlays().add(locationOverlay);
 
@@ -102,15 +111,6 @@ public class MapActivity extends AppCompatActivity
                 mapView.zoomToBoundingBox(new BoundingBox(33.362, -78.343, 24.056, -84.276), false);
             }
         });
-
-        Random rand = new Random();
-        for (int i = 0; i < 1000; i++) {
-            double lat = rand.nextDouble() * (33 - 24) + 24;
-            double lon = rand.nextDouble() * (84 - 78) - 84;
-            GeoPoint point = new GeoPoint(lat, lon);
-            Message message = new Message("foobar", point, new User("brad"), new Date());
-            messageManager.addMessage(message);
-        }
     }
 
     @Override
@@ -120,6 +120,8 @@ public class MapActivity extends AppCompatActivity
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean(LOGGED_IN_STATE_KEY, loggedIn);
         editor.apply();
+
+        executor.shutdown();
     }
 
     @Override
@@ -128,6 +130,18 @@ public class MapActivity extends AppCompatActivity
         SharedPreferences preferences = getPreferences(Context.MODE_PRIVATE);
         loggedIn = preferences.getBoolean(LOGGED_IN_STATE_KEY, false);
         updateLoginVisibility();
+
+        executor = Executors.newSingleThreadScheduledExecutor();
+        Handler handler = new Handler(Looper.getMainLooper()) {
+            @Override
+            public void handleMessage(android.os.Message msg) {
+                Log.println(Log.INFO, "", "UPDATING MESSAGES"); // TODO remove debug log
+                List<Message> messages = (List<Message>) msg.obj;
+                messageManager.replaceActiveMarkers(messages);
+            }
+        };
+        executor.scheduleAtFixedRate(new HeartbeatRunnable(handler, locationProvider),
+                0, 30, TimeUnit.SECONDS);
     }
 
     @Override

@@ -10,9 +10,6 @@ import java.util.Objects;
 
 public class Message extends GeoPoint implements Parcelable {
 
-    private final String msg;
-    private final User author;
-    private final Date created;
     public static final Creator<Message> CREATOR = new Creator<Message>() {
         @Override
         public Message createFromParcel(Parcel source) {
@@ -24,6 +21,9 @@ public class Message extends GeoPoint implements Parcelable {
             return new Message[size];
         }
     };
+    private final String msg;
+    private final User author;
+    private final Date created;
     private boolean favorite = false; // TODO take from inputs
 
     public Message(String msg, GeoPoint point, User author, Date created) {
@@ -31,6 +31,11 @@ public class Message extends GeoPoint implements Parcelable {
         this.msg = msg;
         this.author = author;
         this.created = created;
+    }
+
+    public Message(Parcel in) {
+        this(in.readString(), GeoPoint.CREATOR.createFromParcel(in), User.CREATOR.createFromParcel(in), new Date(in.readLong()));
+
     }
 
     public String getMsg() {
@@ -60,11 +65,6 @@ public class Message extends GeoPoint implements Parcelable {
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), getMsg(), getAuthor(), getCreated(), isFavorite());
-    }
-
-    public Message(Parcel in) {
-        this(in.readString(), GeoPoint.CREATOR.createFromParcel(in), User.CREATOR.createFromParcel(in), new Date(in.readLong()));
-
     }
 
     @Override

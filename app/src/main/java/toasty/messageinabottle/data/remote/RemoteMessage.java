@@ -21,16 +21,19 @@ public class RemoteMessage {
 
     public static Message parseJson(String json) throws ParseException {
         Gson gson = new Gson();
-
         RemoteMessage remoteMessage = gson.fromJson(json, RemoteMessage.class);
+        return remoteMessage.toMessage();
+    }
+
+    public Message toMessage() throws ParseException {
         Message message = new Message(
-                remoteMessage.feature.properties.text,
+                feature.properties.text,
                 new GeoPoint(
-                        remoteMessage.feature.geometry.coordinates[0],
-                        remoteMessage.feature.geometry.coordinates[1]
+                        feature.geometry.coordinates[0],
+                        feature.geometry.coordinates[1]
                 ),
-                new User(remoteMessage.creator._id),
-                ISO8601.parse(remoteMessage.feature.properties.date)
+                new User(creator._id),
+                ISO8601.parse(feature.properties.date)
         );
         return message;
     }

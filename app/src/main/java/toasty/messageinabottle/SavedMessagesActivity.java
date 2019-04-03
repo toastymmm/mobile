@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 
 import toasty.messageinabottle.data.Message;
+import toasty.messageinabottle.data.MessagePreviewAdapter;
 import toasty.messageinabottle.data.User;
 
 public class SavedMessagesActivity extends AppCompatActivity {

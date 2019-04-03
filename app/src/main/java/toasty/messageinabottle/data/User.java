@@ -7,8 +7,6 @@ import java.util.Objects;
 
 public class User implements Parcelable {
 
-    private final String username;
-
     public static final Parcelable.Creator<User> CREATOR = new Parcelable.Creator<User>() {
         @Override
         public User createFromParcel(Parcel source) {
@@ -20,9 +18,14 @@ public class User implements Parcelable {
             return new User[size];
         }
     };
+    private final String username;
 
     public User(String username) {
         this.username = username;
+    }
+
+    public User(Parcel in) {
+        this(in.readString());
     }
 
     public String getUsername() {
@@ -40,10 +43,6 @@ public class User implements Parcelable {
     @Override
     public int hashCode() {
         return Objects.hash(getUsername());
-    }
-
-    public User(Parcel in) {
-        this(in.readString());
     }
 
     @Override
