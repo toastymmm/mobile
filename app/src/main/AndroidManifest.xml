@@ -18,6 +18,15 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
+            android:name=".CreateMessageActivity"
+            android:label="@string/title_activity_create_message"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MapActivity" />
+        </activity>
+        <activity
             android:name=".AboutActivity"
             android:label="@string/about">
             <meta-data
@@ -64,6 +73,7 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MapActivity" />
+
             <intent-filter>
                 <action android:name="toasty.messageinabottle.MESSAGE_DETAIL_ACTIVITY" />
             </intent-filter>
