@@ -1,5 +1,7 @@
 package toasty.messageinabottle.io;
 
+import android.util.Log;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -10,9 +12,11 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
+import okhttp3.FormBody;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 import toasty.messageinabottle.data.Message;
 import toasty.messageinabottle.data.remote.RemoteMessage;
@@ -53,5 +57,40 @@ public class LiveBackend {
             }
             return result;
         }
+    }
+
+    public static boolean tryToCreateAccount(String username, String password) throws IOException {
+        RequestBody formBody=new FormBody.Builder()
+                .add("username", username)
+                .add("password", password)
+                .build();
+        Request request=new Request.Builder()
+                .url("http://toastymmm.hopto.org/api/signup")
+                .post(formBody)
+                .build();
+        Response response=client.newCall(request).execute();
+        String result=response.body().string();
+
+        //if we get the response that it worked, then we created an account successfully,
+        //otherwise this username already exists.
+        return result.toLowerCase().contains("it worked");
+    }
+
+    public static boolean login(String username, String password) throws IOException {
+        String tag="Live backend";
+
+        Log.d(tag, "Trying to create account");
+        RequestBody formBody=new FormBody.Builder()
+                .add("username", username)
+                .add("password", password)
+                .build();
+        Request request=new Request.Builder()
+                .url("http://toastymmm.hopto.org/api/userLogin")
+                .post(formBody)
+                .build();
+        Response response=client.newCall(request).execute();
+        String result=response.body().string();
+
+        return result.toLowerCase().contains("it worked");
     }
 }

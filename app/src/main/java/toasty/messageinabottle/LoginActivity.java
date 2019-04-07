@@ -18,6 +18,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -28,8 +29,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import toasty.messageinabottle.io.LiveBackend;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -310,7 +314,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         @Override
         protected Boolean doInBackground(Void... params) {
             // TODO: attempt authentication against a network service.
-
+            final String tag="Live Login Activity";
             try {
                 // Simulate network access.
                 Thread.sleep(2000);
@@ -318,16 +322,24 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 return false;
             }
 
-            for (String credential : DUMMY_CREDENTIALS) {
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mEmail)) {
-                    // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
+            try {
+                boolean createdAccount=LiveBackend.tryToCreateAccount(mEmail, mPassword);
+                if (createdAccount) {
+                    Log.d(tag, "Created an account successfully");
+                    return true;
+                }
+                else {
+                    boolean loginSuccessful=LiveBackend.login(mEmail, mPassword);
+                    Log.d(tag, "Logged success: "+loginSuccessful);
+                    return loginSuccessful;
                 }
             }
+            catch (IOException e) {
+                //oops
 
-            // TODO: register the new account here.
-            return true;
+                Log.d(tag, "Error when creatingAccount/logging in: "+e.toString());
+                return false;
+            }
         }
 
         @Override
