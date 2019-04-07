@@ -1,4 +1,4 @@
-package toasty.messageinabottle;
+package toasty.messageinabottle.data;
 
 import android.content.Context;
 import android.content.Intent;
@@ -12,7 +12,8 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import toasty.messageinabottle.data.Message;
+import toasty.messageinabottle.MessageDetailActivity;
+import toasty.messageinabottle.R;
 
 public class MessagePreviewAdapter extends RecyclerView.Adapter<MessagePreviewAdapter.MessagePreviewViewHolder> {
 

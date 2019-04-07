@@ -3,9 +3,9 @@ package toasty.messageinabottle.data;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class User implements Parcelable {
+import java.util.Objects;
 
-    private final String username;
+public class User implements Parcelable {
 
     public static final Parcelable.Creator<User> CREATOR = new Parcelable.Creator<User>() {
         @Override
@@ -18,17 +18,31 @@ public class User implements Parcelable {
             return new User[size];
         }
     };
+    private final String username;
 
     public User(String username) {
         this.username = username;
+    }
+
+    public User(Parcel in) {
+        this(in.readString());
     }
 
     public String getUsername() {
         return username;
     }
 
-    public User(Parcel in) {
-        this(in.readString());
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(getUsername(), user.getUsername());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getUsername());
     }
 
     @Override

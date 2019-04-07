@@ -1,4 +1,4 @@
-package toasty.messageinabottle.exceptions;
+package toasty.messageinabottle.exception;
 
 public class AuthenticationException extends Exception {
 }

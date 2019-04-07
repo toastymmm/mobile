@@ -33,4 +33,6 @@
     <string name="team_toast">Team Toast</string>
     <string name="semester_description">Spring Semester 2019</string>
     <string name="team_members">Charles Bailey (API/Backend)\nJasper Chong (API/Backend)\nNikolaus Dunn (API/Backend/Web)\nBradley Glaser (Mobile/Project Manager)\nDavid Harmeyer(Mobile)\nHeath Milligan (Web)\nSydney Munro (Backend/Web)\nJuan Parra (Web)\nSpencer Ross (Mobile)</string>
+    <string name="title_activity_create_message">CreateMessageActivity</string>
+    <string name="must_not_be_empty">Message must not be empty!</string>
 </resources>

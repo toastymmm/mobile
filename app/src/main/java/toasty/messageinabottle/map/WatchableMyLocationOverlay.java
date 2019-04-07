@@ -1,4 +1,4 @@
-package toasty.messageinabottle;
+package toasty.messageinabottle.map;
 
 import android.location.Location;
 

@@ -1,4 +1,4 @@
-package toasty.messageinabottle.distance;
+package toasty.messageinabottle.map;
 
 import android.content.Context;
 import android.content.Intent;
