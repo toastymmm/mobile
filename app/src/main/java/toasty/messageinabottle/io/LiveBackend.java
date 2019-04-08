@@ -1,5 +1,7 @@
 package toasty.messageinabottle.io;
 
+import android.content.Context;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -19,10 +21,15 @@ import toasty.messageinabottle.data.remote.RemoteMessage;
 
 public class LiveBackend {
 
-    private static final OkHttpClient client = new OkHttpClient();
-    private static final Gson gson = new Gson();
+    private final Gson gson = new Gson();
+    private OkHttpClient client;
 
-    public static List<Message> messages(IGeoPoint geoPoint) throws IOException {
+    public LiveBackend(Context ctx) {
+        PersistentCookieJar cookieJar = new PersistentCookieJar(ctx);
+        client = new OkHttpClient.Builder().cookieJar(cookieJar).build();
+    }
+
+    public List<Message> messages(IGeoPoint geoPoint) throws IOException {
         HttpUrl url = HttpUrl.get("http://toastymmm.hopto.org/api/messages")
                 .newBuilder()
                 .addQueryParameter("lat", Double.toString(geoPoint.getLatitude()))
