@@ -3,11 +3,11 @@ package toasty.messageinabottle.io;
 import android.content.Context;
 import android.location.Location;
 import android.os.Handler;
+import android.util.Log;
 
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.overlay.mylocation.IMyLocationProvider;
 
-import java.io.IOException;
 import java.util.List;
 
 import toasty.messageinabottle.data.Message;
@@ -34,11 +34,13 @@ public class HeartbeatRunnable implements Runnable {
         GeoPoint lastKnownGeoPoint = new GeoPoint(lastKnownLocation);
 
         try {
+            Log.i("TOAST", "Updating messages...");
             List<Message> messages = backend.messages(lastKnownGeoPoint);
+            Log.i("TOAST", "Received " + messages.size() + " messages.");
             android.os.Message message = handler.obtainMessage(UPDATE_MESSAGE_MANAGER, messages);
             message.sendToTarget();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            Log.i("TOAST", "Updating messages failed!", e);
         }
     }
 }

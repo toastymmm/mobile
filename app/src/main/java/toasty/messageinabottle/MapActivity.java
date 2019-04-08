@@ -128,6 +128,7 @@ public class MapActivity extends AppCompatActivity
         editor.putBoolean(LOGGED_IN_STATE_KEY, loggedIn);
         editor.apply();
 
+        Log.i("TOAST", "Shutting down heartbeat thread.");
         executor.shutdown();
     }
 
@@ -139,11 +140,12 @@ public class MapActivity extends AppCompatActivity
         updateLoginVisibility();
 
         executor = Executors.newSingleThreadScheduledExecutor();
+        Log.i("TOAST", "Setting up heartbeat thread.");
         Handler handler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(android.os.Message msg) {
-                Log.println(Log.INFO, "", "UPDATING MESSAGES"); // TODO remove debug log
                 List<Message> messages = (List<Message>) msg.obj;
+                Log.i("TOAST", "Updating the active markers.");
                 messageManager.replaceActiveMarkers(messages);
             }
         };
