@@ -1,5 +1,6 @@
 package toasty.messageinabottle.io;
 
+import android.content.Context;
 import android.location.Location;
 import android.os.Handler;
 
@@ -17,8 +18,10 @@ public class HeartbeatRunnable implements Runnable {
 
     private final Handler handler;
     private final IMyLocationProvider locationProvider;
+    private final LiveBackend backend;
 
-    public HeartbeatRunnable(Handler handler, IMyLocationProvider locationProvider) {
+    public HeartbeatRunnable(Context ctx, Handler handler, IMyLocationProvider locationProvider) {
+        backend = new LiveBackend(ctx);
         this.handler = handler;
         this.locationProvider = locationProvider;
     }
@@ -31,7 +34,7 @@ public class HeartbeatRunnable implements Runnable {
         GeoPoint lastKnownGeoPoint = new GeoPoint(lastKnownLocation);
 
         try {
-            List<Message> messages = LiveBackend.messages(lastKnownGeoPoint);
+            List<Message> messages = backend.messages(lastKnownGeoPoint);
             android.os.Message message = handler.obtainMessage(UPDATE_MESSAGE_MANAGER, messages);
             message.sendToTarget();
         } catch (IOException e) {

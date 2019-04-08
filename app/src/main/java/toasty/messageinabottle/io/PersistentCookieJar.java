@@ -1,11 +1,11 @@
 package toasty.messageinabottle.io;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.annotation.NonNull;
 import okhttp3.Cookie;
 import okhttp3.CookieJar;
 import okhttp3.HttpUrl;

@@ -26,6 +26,9 @@ public class DatabaseCookie {
     @ColumnInfo(name = "host_only")
     public boolean hostOnly;
 
+    public DatabaseCookie() {
+    }
+
     public DatabaseCookie(Cookie cookie) {
         name = cookie.name();
         value = cookie.value();

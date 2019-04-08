@@ -10,20 +10,14 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationView;
 
 import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
@@ -38,6 +32,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import toasty.messageinabottle.data.Message;
 import toasty.messageinabottle.io.HeartbeatRunnable;
 import toasty.messageinabottle.map.MessageManager;
@@ -146,7 +147,7 @@ public class MapActivity extends AppCompatActivity
                 messageManager.replaceActiveMarkers(messages);
             }
         };
-        executor.scheduleAtFixedRate(new HeartbeatRunnable(handler, locationProvider),
+        executor.scheduleAtFixedRate(new HeartbeatRunnable(getApplicationContext(), handler, locationProvider),
                 0, 30, TimeUnit.SECONDS);
     }
 
