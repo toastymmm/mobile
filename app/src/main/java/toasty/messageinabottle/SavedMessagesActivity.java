@@ -1,9 +1,6 @@
 package toasty.messageinabottle;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 
 import org.osmdroid.util.GeoPoint;
 
@@ -11,6 +8,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import toasty.messageinabottle.data.Message;
 import toasty.messageinabottle.data.MessagePreviewAdapter;
 import toasty.messageinabottle.data.User;
