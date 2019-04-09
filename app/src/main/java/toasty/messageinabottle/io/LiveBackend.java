@@ -91,4 +91,9 @@ public class LiveBackend {
             return result;
         }
     }
+
+    public List<Message> favorites() {
+        // TODO impl
+        return null;
+    }
 }
