@@ -7,7 +7,7 @@ import okhttp3.Cookie;
 
 @Entity
 public class DatabaseCookie {
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     public int uid;
     @ColumnInfo
     public String name;

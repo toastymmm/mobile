@@ -3,7 +3,6 @@ package toasty.messageinabottle.io;
 import android.content.Context;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 import org.osmdroid.api.IGeoPoint;
 
@@ -11,6 +10,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
@@ -26,7 +26,10 @@ public class LiveBackend {
 
     public LiveBackend(Context ctx) {
         PersistentCookieJar cookieJar = new PersistentCookieJar(ctx);
-        client = new OkHttpClient.Builder().cookieJar(cookieJar).build();
+        client = new OkHttpClient.Builder()
+                .readTimeout(0, TimeUnit.MILLISECONDS)
+                .cookieJar(cookieJar)
+                .build();
     }
 
     public List<Message> messages(IGeoPoint geoPoint) throws IOException {
@@ -44,9 +47,7 @@ public class LiveBackend {
             }
 
             // Parse the response body using Gson
-            List<RemoteMessage> messages = gson.fromJson(response.body().charStream(),
-                    new TypeToken<ArrayList<RemoteMessage>>() {
-                    }.getType());
+            RemoteMessage[] messages = gson.fromJson(response.body().string(), RemoteMessage[].class);
 
             // Convert the RemoteMessages into Messages
             List<Message> result = new ArrayList<>();
