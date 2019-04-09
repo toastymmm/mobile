@@ -2,6 +2,7 @@ package toasty.messageinabottle;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -35,6 +36,13 @@ public class SavedMessagesActivity extends AppCompatActivity {
         recyclerView.setAdapter(messagePreviewAdapter);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        LiveBackend backend = new LiveBackend(this);
+        new FetchSavedTask(backend).execute();
+    }
+
     private class FetchSavedTask extends AsyncTask<Void, Void, List<Message>> {
 
         private final LiveBackend backend;
@@ -47,6 +55,7 @@ public class SavedMessagesActivity extends AppCompatActivity {
         @Override
         protected List<Message> doInBackground(Void... voids) {
             try {
+                Log.i("TOAST", "Fetching favorites on background thread.");
                 return backend.favorites();
             } catch (Exception e) {
                 taskFailedException = e;
@@ -57,13 +66,18 @@ public class SavedMessagesActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(List<Message> messages) {
             if (taskFailedException != null) {
+                Log.i("TOAST", "An error occurred while loading favorites.", taskFailedException);
                 if (taskFailedException instanceof AuthenticationException) {
-                    Toast.makeText(SavedMessagesActivity.this, "Invalid state. Not logged in.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Invalid state. Not logged in.", Toast.LENGTH_LONG).show();
                 } else if (taskFailedException instanceof IOException) {
-                    Toast.makeText(SavedMessagesActivity.this, "Failed to load message favorites.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Failed to load message favorites.", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "An unknown error occurred while loading favorites.", Toast.LENGTH_LONG).show();
                 }
                 finish();
+                return;
             }
+            Log.i("TOAST", "Updating favorites on main thread.");
             activeMessages.clear();
             activeMessages.addAll(messages);
             messagePreviewAdapter.notifyDataSetChanged();

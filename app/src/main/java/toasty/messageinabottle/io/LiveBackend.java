@@ -75,7 +75,6 @@ public class LiveBackend {
             if (response.body() == null)
                 return new ArrayList<>();
 
-
             RemoteMessage[] messages = gson.fromJson(response.body().charStream(), RemoteMessage[].class);
 
             // Convert the RemoteMessages into Messages
@@ -92,8 +91,31 @@ public class LiveBackend {
         }
     }
 
-    public List<Message> favorites() {
-        // TODO impl
-        return null;
+    public List<Message> favorites() throws IOException {
+        HttpUrl url = HttpUrl.get("http://toastymmm.hopto.org/api/favorites/");
+
+        Request req = new Request.Builder().get().url(url).build();
+
+        try (Response response = client.newCall(req).execute()) {
+            if (response.code() != 200)
+                throw new IOException("Server returned invalid code: " + response.code());
+
+            if (response.body() == null)
+                return new ArrayList<>();
+
+            RemoteMessage[] messages = gson.fromJson(response.body().charStream(), RemoteMessage[].class);
+
+            // Convert the RemoteMessages into Messages
+            List<Message> result = new ArrayList<>();
+            for (RemoteMessage rm : messages) {
+                try {
+                    result.add(rm.toMessage());
+                } catch (ParseException e) {
+                    // TODO handle me
+                    throw new RuntimeException(e);
+                }
+            }
+            return result;
+        }
     }
 }

@@ -65,6 +65,7 @@ public class MapActivity extends AppCompatActivity
     private boolean loggedIn = false;
     private MenuItem loginMenuItem;
     private MenuItem logoutMenuItem;
+    private MenuItem savedMenuItem;
     private MenuItem historyMenuItem;
 
     private WatchableMyLocationOverlay locationOverlay;
@@ -108,6 +109,7 @@ public class MapActivity extends AppCompatActivity
 
         loginMenuItem = navigationView.getMenu().findItem(R.id.login);
         logoutMenuItem = navigationView.getMenu().findItem(R.id.logout);
+        savedMenuItem = navigationView.getMenu().findItem(R.id.saved);
         historyMenuItem = navigationView.getMenu().findItem(R.id.history);
 
         mapView = findViewById(R.id.map);
@@ -278,6 +280,7 @@ public class MapActivity extends AppCompatActivity
     private void updateLoginVisibility() {
         loginMenuItem.setVisible(!loggedIn);
         logoutMenuItem.setVisible(loggedIn);
+        savedMenuItem.setVisible(loggedIn);
         historyMenuItem.setVisible(loggedIn);
     }
 
