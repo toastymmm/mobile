@@ -11,9 +11,9 @@ import android.os.Looper;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -41,6 +41,7 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import toasty.messageinabottle.data.Message;
 import toasty.messageinabottle.io.HeartbeatRunnable;
+import toasty.messageinabottle.map.DoubleTapGestureListener;
 import toasty.messageinabottle.map.MessageManager;
 import toasty.messageinabottle.map.WatchableMyLocationOverlay;
 
@@ -58,7 +59,10 @@ public class MapActivity extends AppCompatActivity
     private MenuItem logoutMenuItem;
     private MenuItem historyMenuItem;
 
+    private WatchableMyLocationOverlay locationOverlay;
     private IMyLocationProvider locationProvider;
+
+    private Handler uiThreadMessageHandler;
     private MessageManager messageManager;
     private ScheduledExecutorService executor;
 
@@ -68,22 +72,20 @@ public class MapActivity extends AppCompatActivity
 
         final Context ctx = getApplicationContext();
         Configuration.getInstance().load(ctx, PreferenceManager.getDefaultSharedPreferences(ctx));
+        executor = Executors.newSingleThreadScheduledExecutor();
 
         setContentView(R.layout.activity_map);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(ctx, CreateMessageActivity.class);
-                Location lastKnownLocation = locationProvider.getLastKnownLocation();
-                if (lastKnownLocation == null)
-                    return;
-                intent.putExtra(CreateMessageActivity.LAST_KNOWN_LOCATION, (Parcelable) new GeoPoint(lastKnownLocation));
-                startActivity(intent);
-            }
+        fab.setOnClickListener(view -> {
+            Intent intent = new Intent(ctx, CreateMessageActivity.class);
+            Location lastKnownLocation = locationProvider.getLastKnownLocation();
+            if (lastKnownLocation == null)
+                return;
+            intent.putExtra(CreateMessageActivity.LAST_KNOWN_LOCATION, (Parcelable) new GeoPoint(lastKnownLocation));
+            startActivity(intent);
         });
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -100,29 +102,54 @@ public class MapActivity extends AppCompatActivity
         historyMenuItem = navigationView.getMenu().findItem(R.id.history);
 
         mapView = findViewById(R.id.map);
-        mapView.setTileSource(TileSourceFactory.MAPNIK);
-
-        WatchableMyLocationOverlay locationOverlay = new WatchableMyLocationOverlay(mapView);
+        locationOverlay = new WatchableMyLocationOverlay(mapView);
         locationProvider = locationOverlay.getMyLocationProvider();
-        locationOverlay.enableMyLocation();
-        mapView.getOverlays().add(locationOverlay);
+
+        mapView.setTileSource(TileSourceFactory.MAPNIK);
+        GestureDetector doubleTapDetector = new GestureDetector(ctx, new DoubleTapGestureListener());
+        mapView.setOnTouchListener((v, event) -> {
+            if (doubleTapDetector.onTouchEvent(event))
+                return true;
+            // TODO ensure that we can still click on map messages
+            return v.performClick();
+        });
 
         messageManager = new MessageManager(mapView);
         locationOverlay.addConsumer(messageManager);
+        uiThreadMessageHandler = new Handler(Looper.getMainLooper()) {
+            @Override
+            public void handleMessage(android.os.Message msg) {
+                List<Message> messages = (List<Message>) msg.obj;
+                Log.i("TOAST", "Updating the active markers.");
+                messageManager.replaceActiveMarkers(messages);
+            }
+        };
+
+        mapView.getOverlays().add(locationOverlay);
+        Handler animationHandler = new Handler(Looper.getMainLooper());
+        locationOverlay.runOnFirstFix(() -> {
+            // Update the messages as soon as we get a location
+            executor.execute(new HeartbeatRunnable(ctx, uiThreadMessageHandler, locationProvider));
+            // Move the map to where the new location is
+            animationHandler.post(() -> {
+                mapView.getController().setCenter(locationOverlay.getMyLocation());
+                mapView.getController().setZoom(19.0);
+            });
+        });
 
         mapView.getZoomController().setVisibility(CustomZoomButtonsController.Visibility.NEVER);
 
-        mapView.addOnFirstLayoutListener(new MapView.OnFirstLayoutListener() {
-            @Override
-            public void onFirstLayout(View v, int left, int top, int right, int bottom) {
-                mapView.zoomToBoundingBox(new BoundingBox(33.362, -78.343, 24.056, -84.276), false);
-            }
-        });
+        mapView.addOnFirstLayoutListener((v, left, top, right, bottom) ->
+                mapView.zoomToBoundingBox(new BoundingBox(33.362, -78.343, 24.056, -84.276), false));
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+
+        locationOverlay.disableMyLocation();
+        locationOverlay.disableFollowLocation();
+
         SharedPreferences preferences = getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean(LOGGED_IN_STATE_KEY, loggedIn);
@@ -135,26 +162,25 @@ public class MapActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
+
+        locationOverlay.enableMyLocation();
+        locationOverlay.enableFollowLocation();
+        locationOverlay.setEnableAutoStop(false);
+
         SharedPreferences preferences = getPreferences(Context.MODE_PRIVATE);
         loggedIn = preferences.getBoolean(LOGGED_IN_STATE_KEY, false);
         updateLoginVisibility();
 
-        executor = Executors.newSingleThreadScheduledExecutor();
+        if (executor == null || executor.isShutdown()) {
+            executor = Executors.newSingleThreadScheduledExecutor();
+        }
         Log.i("TOAST", "Setting up heartbeat thread.");
-        Handler handler = new Handler(Looper.getMainLooper()) {
-            @Override
-            public void handleMessage(android.os.Message msg) {
-                List<Message> messages = (List<Message>) msg.obj;
-                Log.i("TOAST", "Updating the active markers.");
-                messageManager.replaceActiveMarkers(messages);
-            }
-        };
-        executor.scheduleAtFixedRate(new HeartbeatRunnable(getApplicationContext(), handler, locationProvider),
-                0, 30, TimeUnit.SECONDS);
+        executor.scheduleAtFixedRate(new HeartbeatRunnable(getApplicationContext(), uiThreadMessageHandler, locationProvider),
+                0, 5, TimeUnit.SECONDS);
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
+    public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putBoolean(LOGGED_IN_STATE_KEY, loggedIn);
     }
@@ -198,7 +224,6 @@ public class MapActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
