@@ -18,11 +18,13 @@ import okhttp3.Request;
 import okhttp3.Response;
 import toasty.messageinabottle.data.Message;
 import toasty.messageinabottle.data.remote.RemoteMessage;
+import toasty.messageinabottle.exception.AuthenticationException;
 
 public class LiveBackend {
 
     private final Gson gson = new Gson();
     private OkHttpClient client;
+    private String userID = null;
 
     public LiveBackend(Context ctx) {
         PersistentCookieJar cookieJar = new PersistentCookieJar(ctx);
@@ -42,12 +44,39 @@ public class LiveBackend {
         Request req = new Request.Builder().get().url(url).build();
 
         try (Response response = client.newCall(req).execute()) {
-            if (response.body() == null) {
+            if (response.body() == null)
                 return new ArrayList<>();
-            }
 
             // Parse the response body using Gson
             RemoteMessage[] messages = gson.fromJson(response.body().string(), RemoteMessage[].class);
+
+            // Convert the RemoteMessages into Messages
+            List<Message> result = new ArrayList<>();
+            for (RemoteMessage rm : messages) {
+                try {
+                    result.add(rm.toMessage());
+                } catch (ParseException e) {
+                    // TODO handle me
+                    throw new RuntimeException(e);
+                }
+            }
+            return result;
+        }
+    }
+
+    public List<Message> messageHistory() throws AuthenticationException, IOException {
+        if (userID == null)
+            throw new AuthenticationException();
+        HttpUrl url = HttpUrl.get("http://toastymmm.hopto.org/api/messages/" + userID);
+
+        Request req = new Request.Builder().get().url(url).build();
+
+        try (Response response = client.newCall(req).execute()) {
+            if (response.body() == null)
+                return new ArrayList<>();
+
+
+            RemoteMessage[] messages = gson.fromJson(response.body().charStream(), RemoteMessage[].class);
 
             // Convert the RemoteMessages into Messages
             List<Message> result = new ArrayList<>();

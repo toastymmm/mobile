@@ -1,5 +1,6 @@
 package toasty.messageinabottle;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -73,6 +74,7 @@ public class MapActivity extends AppCompatActivity
     private MessageManager messageManager;
     private ScheduledExecutorService executor;
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -126,6 +128,7 @@ public class MapActivity extends AppCompatActivity
         uiThreadMessageHandler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(android.os.Message msg) {
+                @SuppressWarnings("unchecked")
                 List<Message> messages = (List<Message>) msg.obj;
                 Log.i("TOAST", "Updating the active markers.");
                 messageManager.replaceActiveMarkers(messages);
