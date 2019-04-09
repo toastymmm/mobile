@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -37,6 +38,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import toasty.messageinabottle.data.Message;
@@ -45,10 +48,14 @@ import toasty.messageinabottle.map.DoubleTapGestureListener;
 import toasty.messageinabottle.map.MessageManager;
 import toasty.messageinabottle.map.WatchableMyLocationOverlay;
 
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+
 public class MapActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     public static final int LOGIN_REQUEST_CODE = 0;
+    public static final int MY_PERMISSION_REQUEST_CODE = 1;
 
     public static final String LOGGED_IN_STATE_KEY = "LOGGED_IN";
 
@@ -177,6 +184,8 @@ public class MapActivity extends AppCompatActivity
         Log.i("TOAST", "Setting up heartbeat thread.");
         executor.scheduleAtFixedRate(new HeartbeatRunnable(getApplicationContext(), uiThreadMessageHandler, locationProvider),
                 0, 5, TimeUnit.SECONDS);
+
+        ensureLocationPermission();
     }
 
     @Override
@@ -267,5 +276,25 @@ public class MapActivity extends AppCompatActivity
         loginMenuItem.setVisible(!loggedIn);
         logoutMenuItem.setVisible(loggedIn);
         historyMenuItem.setVisible(loggedIn);
+    }
+
+    private void ensureLocationPermission() {
+        if (Build.VERSION.SDK_INT < 23)
+            return;
+        if (ContextCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, ACCESS_FINE_LOCATION)) {
+                Toast.makeText(this, "Message in a bottle requires location permission!", Toast.LENGTH_LONG).show();
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION}, MY_PERMISSION_REQUEST_CODE);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode != MY_PERMISSION_REQUEST_CODE || grantResults.length != 1 || grantResults[0] != PERMISSION_GRANTED) {
+            Toast.makeText(this, "Message in a bottle requires location permission!", Toast.LENGTH_LONG).show();
+        }
     }
 }
