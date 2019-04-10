@@ -20,7 +20,6 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import toasty.messageinabottle.data.Message;
 import toasty.messageinabottle.data.remote.RemoteMessage;
-import toasty.messageinabottle.exception.AuthenticationException;
 
 public class LiveBackend {
 
@@ -28,7 +27,6 @@ public class LiveBackend {
 
     private final Gson gson = new Gson();
     private OkHttpClient client;
-    private String userID = null;
 
     public LiveBackend(Context ctx) {
         PersistentCookieJar cookieJar = new PersistentCookieJar(ctx);
@@ -79,14 +77,15 @@ public class LiveBackend {
         }
     }
 
-    public List<Message> messageHistory() throws AuthenticationException, IOException {
-        if (userID == null)
-            throw new AuthenticationException();
-        HttpUrl url = HttpUrl.get("http://toastymmm.hopto.org/api/messages/" + userID);
+    public List<Message> messageHistory() throws IOException {
+        HttpUrl url = HttpUrl.get("http://toastymmm.hopto.org/api/messages/me");
 
         Request req = new Request.Builder().get().url(url).build();
 
         try (Response response = client.newCall(req).execute()) {
+            if (response.code() != 200)
+                throw new IOException("Server returned invalid code: " + response.code());
+
             if (response.body() == null)
                 return new ArrayList<>();
 
