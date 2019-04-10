@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.snackbar.Snackbar;
 
 import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
@@ -90,12 +91,18 @@ public class MapActivity extends AppCompatActivity
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(view -> {
-            Intent intent = new Intent(ctx, CreateMessageActivity.class);
-            Location lastKnownLocation = locationProvider.getLastKnownLocation();
-            if (lastKnownLocation == null)
-                return;
-            intent.putExtra(CreateMessageActivity.LAST_KNOWN_LOCATION, (Parcelable) new GeoPoint(lastKnownLocation));
-            startActivity(intent);
+            if (loggedIn) {
+                Intent intent = new Intent(ctx, CreateMessageActivity.class);
+                Location lastKnownLocation = locationProvider.getLastKnownLocation();
+                if (lastKnownLocation == null) {
+                    Toast.makeText(ctx, "Wait for location service.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                intent.putExtra(CreateMessageActivity.LAST_KNOWN_LOCATION, (Parcelable) new GeoPoint(lastKnownLocation));
+                startActivity(intent);
+            } else {
+                Snackbar.make(view, "Log in to create messages.", Snackbar.LENGTH_LONG).show();
+            }
         });
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);

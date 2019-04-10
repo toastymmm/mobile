@@ -13,14 +13,18 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.HttpUrl;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 import toasty.messageinabottle.data.Message;
 import toasty.messageinabottle.data.remote.RemoteMessage;
 import toasty.messageinabottle.exception.AuthenticationException;
 
 public class LiveBackend {
+
+    private static final MediaType JSON_MEDIA_TYPE = MediaType.parse("application/json; charset=utf-8");
 
     private final Gson gson = new Gson();
     private OkHttpClient client;
@@ -32,6 +36,17 @@ public class LiveBackend {
                 .readTimeout(0, TimeUnit.MILLISECONDS)
                 .cookieJar(cookieJar)
                 .build();
+    }
+
+    public void createMessage(Message message) throws IOException {
+        HttpUrl httpUrl = HttpUrl.get("http://toastymmm.hopto.org/api/message");
+        RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, message.toRemoteJson());
+        Request req = new Request.Builder().url(httpUrl).post(body).build();
+
+        try (Response response = client.newCall(req).execute()) {
+            if (response.code() != 200)
+                throw new IOException("Server returned invalid code: " + response.code());
+        }
     }
 
     public List<Message> messages(IGeoPoint geoPoint) throws IOException {

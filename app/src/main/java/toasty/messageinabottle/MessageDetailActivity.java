@@ -3,7 +3,6 @@ package toasty.messageinabottle;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.TextView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -32,12 +31,9 @@ public class MessageDetailActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ToggleFavoriteTask toggleFavoriteTask = new ToggleFavoriteTask();
-                toggleFavoriteTask.doInBackground(message);
-            }
+        fab.setOnClickListener(view -> {
+            ToggleFavoriteTask toggleFavoriteTask = new ToggleFavoriteTask();
+            toggleFavoriteTask.doInBackground(message);
         });
 
         contents = findViewById(R.id.message_detail_message_contents);

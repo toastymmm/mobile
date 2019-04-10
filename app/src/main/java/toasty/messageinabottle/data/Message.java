@@ -3,10 +3,17 @@ package toasty.messageinabottle.data;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.Gson;
+
 import org.osmdroid.util.GeoPoint;
 
 import java.util.Date;
 import java.util.Objects;
+
+import toasty.messageinabottle.data.remote.Feature;
+import toasty.messageinabottle.data.remote.Geometry;
+import toasty.messageinabottle.data.remote.Properties;
+import toasty.messageinabottle.data.remote.RemoteMessage;
 
 public class Message extends GeoPoint implements Parcelable {
 
@@ -86,5 +93,20 @@ public class Message extends GeoPoint implements Parcelable {
 
     public void setFavorite(boolean favorite) {
         this.favorite = favorite;
+    }
+
+    public String toRemoteJson() {
+        RemoteMessage remoteMessage = new RemoteMessage();
+        remoteMessage.feature = new Feature();
+        remoteMessage.feature.type = "Feature";
+        remoteMessage.feature.properties = new Properties();
+        remoteMessage.feature.properties.text = msg;
+        remoteMessage.feature.properties.category = "General"; // TODO categories
+        remoteMessage.feature.properties.date = RemoteMessage.ISO8601.format(created);
+        remoteMessage.feature.properties.numReports = 0;
+        remoteMessage.feature.geometry = Geometry.fromGeopoint(this);
+
+        Gson gson = new Gson();
+        return gson.toJson(remoteMessage);
     }
 }
