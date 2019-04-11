@@ -27,6 +27,7 @@ public class RemoteMessage {
 
     public Message toMessage() throws ParseException {
         return new Message(
+                _id,
                 feature.properties.text,
                 new GeoPoint(
                         feature.geometry.coordinates[1],

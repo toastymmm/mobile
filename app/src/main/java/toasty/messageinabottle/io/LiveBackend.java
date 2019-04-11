@@ -105,6 +105,30 @@ public class LiveBackend {
         }
     }
 
+    public void markFavorite(Message message) throws IOException {
+        HttpUrl url = HttpUrl.get("http://toastymmm.hopto.org/api/favorite/" + message.getID());
+
+        RequestBody emptyBody = RequestBody.create(null, "");
+        Request req = new Request.Builder().url(url).post(emptyBody).build();
+
+        try (Response response = client.newCall(req).execute()) {
+            if (response.code() != 200)
+                throw new IOException("Server returned invalid code: " + response.code());
+        }
+    }
+
+    public void unmarkFavorite(Message message) throws IOException {
+        HttpUrl url = HttpUrl.get("http://toastymmm.hopto.org/api/favorite/" + message.getID());
+
+        Request req = new Request.Builder().url(url).delete().build();
+
+        try (Response response = client.newCall(req).execute()) {
+            if (response.code() != 200)
+                throw new IOException("Server returned invalid code: " + response.code());
+        }
+    }
+
+
     public List<Message> favorites() throws IOException {
         HttpUrl url = HttpUrl.get("http://toastymmm.hopto.org/api/favorites/");
 

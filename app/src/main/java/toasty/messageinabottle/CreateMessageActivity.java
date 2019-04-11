@@ -43,8 +43,8 @@ public class CreateMessageActivity extends AppCompatActivity {
                 return;
             }
 
-            // TODO username is wrong
-            Message message = new Message(editTextContent, lastKnownLocation, new User("me"), new Date());
+            // TODO id and username are wrong
+            Message message = new Message("", editTextContent, lastKnownLocation, new User("me"), new Date());
 
             LiveBackend backend = new LiveBackend(this);
             CreateMessageTask createMessageTask = new CreateMessageTask(backend);
