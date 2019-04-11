@@ -15,9 +15,9 @@ public class RemoteMessage {
 
     public static final DateFormat ISO8601 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
-    Feature feature;
-    String creator;
-    String _id;
+    public Feature feature;
+    public String creator;
+    public String _id;
 
     public static Message parseJson(String json) throws ParseException {
         Gson gson = new Gson();
@@ -26,7 +26,8 @@ public class RemoteMessage {
     }
 
     public Message toMessage() throws ParseException {
-        Message message = new Message(
+        return new Message(
+                _id,
                 feature.properties.text,
                 new GeoPoint(
                         feature.geometry.coordinates[1],
@@ -35,6 +36,5 @@ public class RemoteMessage {
                 new User(creator),
                 ISO8601.parse(feature.properties.date)
         );
-        return message;
     }
 }

@@ -25,6 +25,9 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MapActivity" />
+            <intent-filter>
+                <action android:name="toasty.messageinabottle.CREATE_MESSAGE_ACTIVITY" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".AboutActivity"

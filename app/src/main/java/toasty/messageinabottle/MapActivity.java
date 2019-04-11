@@ -1,5 +1,6 @@
 package toasty.messageinabottle;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -13,12 +14,12 @@ import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.GestureDetector;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.snackbar.Snackbar;
 
 import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
@@ -43,6 +44,8 @@ import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import toasty.messageinabottle.data.Message;
+import toasty.messageinabottle.data.cookie.CookieDatabaseAccessor;
+import toasty.messageinabottle.data.cookie.DatabaseCookieDao;
 import toasty.messageinabottle.io.HeartbeatRunnable;
 import toasty.messageinabottle.map.DoubleTapGestureListener;
 import toasty.messageinabottle.map.MessageManager;
@@ -64,6 +67,7 @@ public class MapActivity extends AppCompatActivity
     private boolean loggedIn = false;
     private MenuItem loginMenuItem;
     private MenuItem logoutMenuItem;
+    private MenuItem savedMenuItem;
     private MenuItem historyMenuItem;
 
     private WatchableMyLocationOverlay locationOverlay;
@@ -73,6 +77,7 @@ public class MapActivity extends AppCompatActivity
     private MessageManager messageManager;
     private ScheduledExecutorService executor;
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,12 +92,25 @@ public class MapActivity extends AppCompatActivity
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(view -> {
-            Intent intent = new Intent(ctx, CreateMessageActivity.class);
-            Location lastKnownLocation = locationProvider.getLastKnownLocation();
-            if (lastKnownLocation == null)
-                return;
-            intent.putExtra(CreateMessageActivity.LAST_KNOWN_LOCATION, (Parcelable) new GeoPoint(lastKnownLocation));
-            startActivity(intent);
+            if (loggedIn) {
+                Location lastKnownLocation = locationProvider.getLastKnownLocation();
+                if (lastKnownLocation == null) {
+                    Toast.makeText(ctx, "Wait for location service.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                GeoPoint lastKnownGeoPoint = new GeoPoint(lastKnownLocation);
+
+                if (messageManager.userIsTooClose(lastKnownGeoPoint)) {
+                    Snackbar.make(view, "Too close to another bottle.", Snackbar.LENGTH_LONG).show();
+                    return;
+                }
+
+                Intent intent = new Intent(ctx, CreateMessageActivity.class);
+                intent.putExtra(CreateMessageActivity.LAST_KNOWN_LOCATION, (Parcelable) lastKnownGeoPoint);
+                startActivity(intent);
+            } else {
+                Snackbar.make(view, "Log in to create messages.", Snackbar.LENGTH_LONG).show();
+            }
         });
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -106,6 +124,7 @@ public class MapActivity extends AppCompatActivity
 
         loginMenuItem = navigationView.getMenu().findItem(R.id.login);
         logoutMenuItem = navigationView.getMenu().findItem(R.id.logout);
+        savedMenuItem = navigationView.getMenu().findItem(R.id.saved);
         historyMenuItem = navigationView.getMenu().findItem(R.id.history);
 
         mapView = findViewById(R.id.map);
@@ -117,15 +136,15 @@ public class MapActivity extends AppCompatActivity
         mapView.setOnTouchListener((v, event) -> {
             if (doubleTapDetector.onTouchEvent(event))
                 return true;
-            // TODO ensure that we can still click on map messages
             return v.performClick();
         });
 
-        messageManager = new MessageManager(mapView);
+        messageManager = new MessageManager(mapView, locationOverlay);
         locationOverlay.addConsumer(messageManager);
         uiThreadMessageHandler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(android.os.Message msg) {
+                @SuppressWarnings("unchecked")
                 List<Message> messages = (List<Message>) msg.obj;
                 Log.i("TOAST", "Updating the active markers.");
                 messageManager.replaceActiveMarkers(messages);
@@ -212,28 +231,6 @@ public class MapActivity extends AppCompatActivity
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.map, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
@@ -242,6 +239,13 @@ public class MapActivity extends AppCompatActivity
             Intent intent = new Intent(this, LoginActivity.class);
             startActivityForResult(intent, LOGIN_REQUEST_CODE);
         } else if (id == R.id.logout) {
+            new Thread(() -> {
+                DatabaseCookieDao cookieDao = CookieDatabaseAccessor.getCookieDatabase(this).databaseCookieDao();
+                // TODO remove userid if it is ever provided
+                cookieDao.remove("username");
+                cookieDao.remove("sid");
+            }).start();
+
             loggedIn = false;
             updateLoginVisibility();
         } else if (id == R.id.history) {
@@ -264,9 +268,8 @@ public class MapActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == LOGIN_REQUEST_CODE && resultCode == Activity.RESULT_OK && data != null) {
-            String token = data.getStringExtra(LoginActivity.TOKEN_KEY);
-            Toast.makeText(this, "LOGIN SUCCESS => token=" + token, Toast.LENGTH_LONG).show();
+        if (requestCode == LOGIN_REQUEST_CODE && resultCode == LoginActivity.LOGIN_SUCCESS) {
+            Toast.makeText(this, "LOGIN SUCCESS", Toast.LENGTH_LONG).show();
             loggedIn = true;
             getPreferences(Activity.MODE_PRIVATE).edit().putBoolean(LOGGED_IN_STATE_KEY, loggedIn).apply();
         }
@@ -275,6 +278,7 @@ public class MapActivity extends AppCompatActivity
     private void updateLoginVisibility() {
         loginMenuItem.setVisible(!loggedIn);
         logoutMenuItem.setVisible(loggedIn);
+        savedMenuItem.setVisible(loggedIn);
         historyMenuItem.setVisible(loggedIn);
     }
 

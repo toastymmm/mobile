@@ -14,21 +14,27 @@ import toasty.messageinabottle.data.Message;
 
 public class MessageManager implements IMyLocationConsumer {
 
-    public static final double IN_RANGE_LIMIT = 100000; // meters
+    public static final double IN_RANGE_LIMIT = 50; // meters
+    private static final double USER_RANGE_LIMIT = 25; // meters
 
     private final MapView mapView;
     private final List<BottleMarker> activeMarkers = new ArrayList<>();
+    private GeoPoint lastKnownLocation;
+    private WatchableMyLocationOverlay locationOverlay;
 
-    public MessageManager(MapView mapView) {
+    public MessageManager(MapView mapView, WatchableMyLocationOverlay locationOverlay) {
         this.mapView = mapView;
+        this.locationOverlay = locationOverlay;
     }
 
     @Override
     public synchronized void onLocationChanged(Location location, IMyLocationProvider source) {
         GeoPoint locationGeoPoint = new GeoPoint(location);
+        // Store the location so that we can use it independent of the
+        lastKnownLocation = locationGeoPoint;
+
         for (BottleMarker marker : activeMarkers) {
-            boolean inRange = locationGeoPoint.distanceToAsDouble(marker.getPosition()) <= IN_RANGE_LIMIT;
-            marker.setInRange(inRange);
+            checkRange(marker, locationGeoPoint);
         }
     }
 
@@ -37,9 +43,35 @@ public class MessageManager implements IMyLocationConsumer {
         activeMarkers.clear();
 
         for (Message message : messages) {
-            activeMarkers.add(new BottleMarker(mapView, message));
+            BottleMarker bottleMarker = new BottleMarker(mapView, message);
+            activeMarkers.add(bottleMarker);
+
+            // Do a range update so that the markers aren't waiting on the next GPS tick
+            if (lastKnownLocation != null) {
+                checkRange(bottleMarker, lastKnownLocation);
+            }
         }
 
         mapView.getOverlays().addAll(activeMarkers);
+
+        // Move the location overlay so that it is on top of the others
+        mapView.getOverlays().remove(locationOverlay);
+        mapView.getOverlays().add(locationOverlay);
+
+        // Let the mapView know that it needs to redraw
+        mapView.invalidate();
+    }
+
+    private void checkRange(BottleMarker bottleMarker, GeoPoint locationGeoPoint) {
+        boolean inRange = locationGeoPoint.distanceToAsDouble(bottleMarker.getPosition()) <= IN_RANGE_LIMIT;
+        bottleMarker.setInRange(inRange);
+    }
+
+    public boolean userIsTooClose(GeoPoint lastKnownLocation) {
+        for (BottleMarker marker : activeMarkers) {
+            if (lastKnownLocation.distanceToAsDouble(marker.getPosition()) <= USER_RANGE_LIMIT)
+                return true;
+        }
+        return false;
     }
 }

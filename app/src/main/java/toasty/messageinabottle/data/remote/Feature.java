@@ -1,7 +1,7 @@
 package toasty.messageinabottle.data.remote;
 
-class Feature {
-    String type;
-    Properties properties;
-    Geometry geometry;
+public class Feature {
+    public String type;
+    public Properties properties;
+    public Geometry geometry;
 }

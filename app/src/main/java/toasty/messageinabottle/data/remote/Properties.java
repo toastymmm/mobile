@@ -1,8 +1,8 @@
 package toasty.messageinabottle.data.remote;
 
-class Properties {
-    String text;
-    String category;
-    String date;
-    int numReports;
+public class Properties {
+    public String text;
+    public String category;
+    public String date;
+    public int numReports;
 }

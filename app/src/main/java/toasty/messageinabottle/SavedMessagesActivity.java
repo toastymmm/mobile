@@ -1,11 +1,12 @@
 package toasty.messageinabottle;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.Toast;
 
-import org.osmdroid.util.GeoPoint;
-
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,30 +14,73 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import toasty.messageinabottle.data.Message;
 import toasty.messageinabottle.data.MessagePreviewAdapter;
-import toasty.messageinabottle.data.User;
+import toasty.messageinabottle.exception.AuthenticationException;
+import toasty.messageinabottle.io.LiveBackend;
 
 public class SavedMessagesActivity extends AppCompatActivity {
 
-    private RecyclerView recyclerView;
+    private final List<Message> activeMessages = new ArrayList<>();
+    private MessagePreviewAdapter messagePreviewAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_saved_messages);
 
-        recyclerView = findViewById(R.id.saved_messages);
+        RecyclerView recyclerView = findViewById(R.id.saved_messages);
 
         LinearLayoutManager layoutManger = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManger);
 
-        String loremIpsum = getResources().getString(R.string.message_detail_lorem_ipsum);
-        GeoPoint point = new GeoPoint(0.0, 0.0);
-        List<Message> messages = new ArrayList<>();
-        messages.add(new Message(loremIpsum, point, new User("Brad"), new Date()));
-        messages.add(new Message(loremIpsum, point, new User("David"), new Date()));
-        messages.add(new Message(loremIpsum, point, new User("Spencer"), new Date()));
-
-        MessagePreviewAdapter messagePreviewAdapter = new MessagePreviewAdapter(messages);
+        messagePreviewAdapter = new MessagePreviewAdapter(activeMessages);
         recyclerView.setAdapter(messagePreviewAdapter);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        LiveBackend backend = new LiveBackend(this);
+        new FetchSavedTask(backend).execute();
+    }
+
+    private class FetchSavedTask extends AsyncTask<Void, Void, List<Message>> {
+
+        private final LiveBackend backend;
+        private Exception taskFailedException = null;
+
+        public FetchSavedTask(LiveBackend backend) {
+            this.backend = backend;
+        }
+
+        @Override
+        protected List<Message> doInBackground(Void... voids) {
+            try {
+                Log.i("TOAST", "Fetching favorites on background thread.");
+                return backend.favorites();
+            } catch (Exception e) {
+                taskFailedException = e;
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(List<Message> messages) {
+            if (taskFailedException != null) {
+                Log.i("TOAST", "An error occurred while loading favorites.", taskFailedException);
+                if (taskFailedException instanceof AuthenticationException) {
+                    Toast.makeText(getApplicationContext(), "Invalid state. Not logged in.", Toast.LENGTH_LONG).show();
+                } else if (taskFailedException instanceof IOException) {
+                    Toast.makeText(getApplicationContext(), "Failed to load message favorites.", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "An unknown error occurred while loading favorites.", Toast.LENGTH_LONG).show();
+                }
+                finish();
+                return;
+            }
+            Log.i("TOAST", "Updating favorites on main thread.");
+            activeMessages.clear();
+            activeMessages.addAll(messages);
+            messagePreviewAdapter.notifyDataSetChanged();
+        }
     }
 }
