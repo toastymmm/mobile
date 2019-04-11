@@ -13,11 +13,11 @@
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
-    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in">Login</string>
     <string name="action_sign_in_short">Sign in</string>
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_invalid_password">This password is too short</string>
-    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_incorrect_password">The username or password is incorrect.</string>
     <string name="error_field_required">This field is required</string>
     <string name="permission_rationale">"Contacts permissions are needed for providing email
         completions."
@@ -35,4 +35,6 @@
     <string name="team_members">Charles Bailey (API/Backend)\nJasper Chong (API/Backend)\nNikolaus Dunn (API/Backend/Web)\nBradley Glaser (Mobile/Project Manager)\nDavid Harmeyer(Mobile)\nHeath Milligan (Web)\nSydney Munro (Backend/Web)\nJuan Parra (Web)\nSpencer Ross (Mobile)</string>
     <string name="title_activity_create_message">CreateMessageActivity</string>
     <string name="must_not_be_empty">Message must not be empty!</string>
+    <string name="create_account">Create Account</string>
+    <string name="username_already_exists">Username already exists.</string>
 </resources>

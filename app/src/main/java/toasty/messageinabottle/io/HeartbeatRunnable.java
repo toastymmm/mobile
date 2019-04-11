@@ -21,7 +21,7 @@ public class HeartbeatRunnable implements Runnable {
     private final LiveBackend backend;
 
     public HeartbeatRunnable(Context ctx, Handler handler, IMyLocationProvider locationProvider) {
-        backend = new LiveBackend(ctx);
+        backend = LiveBackend.getInstance(ctx);
         this.handler = handler;
         this.locationProvider = locationProvider;
     }
