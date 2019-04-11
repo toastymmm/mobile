@@ -12,6 +12,9 @@ public interface DatabaseCookieDao {
     @Query("SELECT * FROM DatabaseCookie")
     List<DatabaseCookie> loadAll();
 
+    @Query("SELECT * FROM DatabaseCookie WHERE name=:name")
+    List<DatabaseCookie> find(String name);
+
     @Insert
     void insert(DatabaseCookie cookies);
 

@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -24,6 +25,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.material.snackbar.Snackbar;
 
@@ -32,6 +34,7 @@ import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import toasty.messageinabottle.io.LiveBackend;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -74,6 +77,16 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         // Set up the login form.
         mEmailView = findViewById(R.id.email);
         populateAutoComplete();
+
+        if (BuildConfig.DEBUG) {
+            Button debugLogin = findViewById(R.id.debug_login);
+            debugLogin.setVisibility(View.VISIBLE);
+            debugLogin.setOnClickListener((view) -> {
+                LiveBackend backend = new LiveBackend(this);
+                DebugLoginTask debugLoginTask = new DebugLoginTask(backend);
+                debugLoginTask.execute("brad", "asdf");
+            });
+        }
 
         mPasswordView = findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -352,6 +365,44 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         protected void onCancelled() {
             mAuthTask = null;
             showProgress(false);
+        }
+    }
+
+    private class DebugLoginTask extends AsyncTask<String, Void, Void> {
+
+        private final LiveBackend backend;
+        private Exception taskFailedException;
+
+        private DebugLoginTask(LiveBackend backend) {
+            this.backend = backend;
+        }
+
+        @Override
+        protected Void doInBackground(String... params) {
+            if (params.length != 2)
+                throw new IllegalArgumentException("DebugLoginTask takes two parameters (username, password)");
+            String username = params[0];
+            String password = params[1];
+
+            try {
+                backend.login(username, password);
+                Log.i("TOAST", "debug logged in");
+            } catch (Exception e) {
+                Log.i("TOAST", "debug error logging in", e);
+                taskFailedException = e;
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            if (taskFailedException != null) {
+                Toast.makeText(getApplicationContext(), "debug failed to login", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Toast.makeText(getApplicationContext(), "debug logged-in", Toast.LENGTH_SHORT).show();
+            setResult(LOGIN_SUCCESS);
+            finish();
         }
     }
 }

@@ -24,6 +24,10 @@ class PersistentCookieJar implements CookieJar {
     @Override
     public void saveFromResponse(@NonNull HttpUrl url, @NonNull List<Cookie> cookies) {
         for (Cookie cookie : cookies) {
+            List<DatabaseCookie> foundCookies = cookieDatabase.databaseCookieDao().find(cookie.name());
+            for (DatabaseCookie foundCookie : foundCookies)
+                cookieDatabase.databaseCookieDao().remove(foundCookie);
+
             DatabaseCookie databaseCookie = new DatabaseCookie(cookie);
             cookieDatabase.databaseCookieDao().insert(databaseCookie);
         }
@@ -34,11 +38,6 @@ class PersistentCookieJar implements CookieJar {
     public List<Cookie> loadForRequest(@NonNull HttpUrl url) {
         List<Cookie> result = new ArrayList<>();
         for (DatabaseCookie dbCookie : cookieDatabase.databaseCookieDao().loadAll()) {
-            if (dbCookie.expiresAt > System.currentTimeMillis()) {
-                cookieDatabase.databaseCookieDao().remove(dbCookie);
-                continue;
-            }
-
             Cookie cookie = dbCookie.toCookie();
             if (cookie.matches(url))
                 result.add(cookie);

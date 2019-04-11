@@ -1,6 +1,7 @@
 package toasty.messageinabottle.io;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.google.gson.Gson;
 
@@ -9,7 +10,9 @@ import org.osmdroid.api.IGeoPoint;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.HttpUrl;
@@ -32,6 +35,13 @@ public class LiveBackend {
         PersistentCookieJar cookieJar = new PersistentCookieJar(ctx);
         client = new OkHttpClient.Builder()
                 .readTimeout(0, TimeUnit.MILLISECONDS)
+                .addInterceptor(chain -> {
+                    Request request = chain.request();
+                    Log.i("TOAST_NETWORK", "sending: " + request.toString());
+                    Response response = chain.proceed(request);
+                    Log.i("TOAST_NETWORK", "receiving: " + response.toString());
+                    return response;
+                })
                 .cookieJar(cookieJar)
                 .build();
     }
@@ -130,7 +140,7 @@ public class LiveBackend {
 
 
     public List<Message> favorites() throws IOException {
-        HttpUrl url = HttpUrl.get("http://toastymmm.hopto.org/api/favorites/");
+        HttpUrl url = HttpUrl.get("http://toastymmm.hopto.org/api/favorites/me");
 
         Request req = new Request.Builder().get().url(url).build();
 
@@ -154,6 +164,24 @@ public class LiveBackend {
                 }
             }
             return result;
+        }
+    }
+
+    public void login(String username, String password) throws IOException {
+        HttpUrl url = HttpUrl.get("http://toastymmm.hopto.org/api/userLogin");
+
+        Map<String, String> map = new HashMap<>();
+        map.put("username", username);
+        map.put("password", password);
+
+        String json = gson.toJson(map);
+        RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, json);
+
+        Request req = new Request.Builder().url(url).post(body).build();
+
+        try (Response response = client.newCall(req).execute()) {
+            if (response.code() != 200)
+                throw new IOException("Server returned invalid code: " + response.code());
         }
     }
 }

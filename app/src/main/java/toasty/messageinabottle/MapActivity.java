@@ -127,7 +127,6 @@ public class MapActivity extends AppCompatActivity
         mapView.setOnTouchListener((v, event) -> {
             if (doubleTapDetector.onTouchEvent(event))
                 return true;
-            // TODO ensure that we can still click on map messages
             return v.performClick();
         });
 
@@ -253,9 +252,8 @@ public class MapActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == LOGIN_REQUEST_CODE && resultCode == Activity.RESULT_OK && data != null) {
-            String token = data.getStringExtra(LoginActivity.TOKEN_KEY);
-            Toast.makeText(this, "LOGIN SUCCESS => token=" + token, Toast.LENGTH_LONG).show();
+        if (requestCode == LOGIN_REQUEST_CODE && resultCode == LoginActivity.LOGIN_SUCCESS) {
+            Toast.makeText(this, "LOGIN SUCCESS", Toast.LENGTH_LONG).show();
             loggedIn = true;
             getPreferences(Activity.MODE_PRIVATE).edit().putBoolean(LOGGED_IN_STATE_KEY, loggedIn).apply();
         }
