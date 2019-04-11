@@ -3,7 +3,9 @@ package toasty.messageinabottle;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -22,6 +24,23 @@ import toasty.messageinabottle.io.LiveBackend;
 public class CreateMessageActivity extends AppCompatActivity {
 
     public static final String LAST_KNOWN_LOCATION = "LAST_KNOWN_LOCATION";
+    public static final String[] CATEGORY_CHOICES = new String[]{
+            "General",
+            "Breaking Bad Habits",
+            "Challenges",
+            "Confidence",
+            "Entrepreneurship",
+            "Forgiveness",
+            "Gratitude",
+            "Happiness",
+            "Health",
+            "Leadership",
+            "Love",
+            "Money",
+            "Productivity",
+            "Self-worth",
+            "Success",
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +48,10 @@ public class CreateMessageActivity extends AppCompatActivity {
         setContentView(R.layout.activity_create_message);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        Spinner categorySpinner = findViewById(R.id.category_spinner);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, CATEGORY_CHOICES);
+        categorySpinner.setAdapter(adapter);
 
         EditText messageEditText = findViewById(R.id.messageEditText);
 
@@ -43,6 +66,7 @@ public class CreateMessageActivity extends AppCompatActivity {
                 return;
             }
 
+            // TODO add category to the the message
             // TODO id and username are wrong
             Message message = new Message("", editTextContent, lastKnownLocation, new User("me"), new Date());
 

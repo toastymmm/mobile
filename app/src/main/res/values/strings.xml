@@ -38,4 +38,5 @@
     <string name="report_button">Report</string>
     <string name="report_confirmation">Report message?</string>
     <string name="cancel_button">Cancel</string>
+    <string name="your_message_here">Your Message Here</string>
 </resources>
