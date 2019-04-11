@@ -44,6 +44,8 @@ import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import toasty.messageinabottle.data.Message;
+import toasty.messageinabottle.data.cookie.CookieDatabaseAccessor;
+import toasty.messageinabottle.data.cookie.DatabaseCookieDao;
 import toasty.messageinabottle.io.HeartbeatRunnable;
 import toasty.messageinabottle.map.DoubleTapGestureListener;
 import toasty.messageinabottle.map.MessageManager;
@@ -237,6 +239,13 @@ public class MapActivity extends AppCompatActivity
             Intent intent = new Intent(this, LoginActivity.class);
             startActivityForResult(intent, LOGIN_REQUEST_CODE);
         } else if (id == R.id.logout) {
+            new Thread(() -> {
+                DatabaseCookieDao cookieDao = CookieDatabaseAccessor.getCookieDatabase(this).databaseCookieDao();
+                // TODO remove userid if it is ever provided
+                cookieDao.remove("username");
+                cookieDao.remove("sid");
+            }).start();
+
             loggedIn = false;
             updateLoginVisibility();
         } else if (id == R.id.history) {

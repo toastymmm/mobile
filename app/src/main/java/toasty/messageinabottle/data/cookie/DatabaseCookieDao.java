@@ -20,4 +20,7 @@ public interface DatabaseCookieDao {
 
     @Delete
     void remove(DatabaseCookie dbCookie);
+
+    @Query("DELETE FROM DatabaseCookie WHERE name=:name")
+    void remove(String name);
 }
