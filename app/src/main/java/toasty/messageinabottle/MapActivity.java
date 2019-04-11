@@ -131,7 +131,7 @@ public class MapActivity extends AppCompatActivity
             return v.performClick();
         });
 
-        messageManager = new MessageManager(mapView);
+        messageManager = new MessageManager(mapView, locationOverlay);
         locationOverlay.addConsumer(messageManager);
         uiThreadMessageHandler = new Handler(Looper.getMainLooper()) {
             @Override

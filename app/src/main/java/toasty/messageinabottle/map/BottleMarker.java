@@ -22,6 +22,7 @@ public class BottleMarker extends Marker {
         setAnchor(ANCHOR_CENTER, ANCHOR_CENTER);
         setIcon(mapView.getContext().getDrawable(R.mipmap.ic_launcher_round));
         setPosition(message);
+        setAlpha(0.5f);
     }
 
     @Override
@@ -39,9 +40,9 @@ public class BottleMarker extends Marker {
     public void setInRange(boolean inRange) {
         this.inRange = inRange;
         if (inRange) {
-            setAlpha(1);
+            setAlpha(1.0f);
         } else {
-            setAlpha(0);
+            setAlpha(0.5f);
         }
     }
 }
