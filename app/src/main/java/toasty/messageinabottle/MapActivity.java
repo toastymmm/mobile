@@ -91,13 +91,20 @@ public class MapActivity extends AppCompatActivity
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(view -> {
             if (loggedIn) {
-                Intent intent = new Intent(ctx, CreateMessageActivity.class);
                 Location lastKnownLocation = locationProvider.getLastKnownLocation();
                 if (lastKnownLocation == null) {
                     Toast.makeText(ctx, "Wait for location service.", Toast.LENGTH_LONG).show();
                     return;
                 }
-                intent.putExtra(CreateMessageActivity.LAST_KNOWN_LOCATION, (Parcelable) new GeoPoint(lastKnownLocation));
+                GeoPoint lastKnownGeoPoint = new GeoPoint(lastKnownLocation);
+
+                if (messageManager.userIsTooClose(lastKnownGeoPoint)) {
+                    Snackbar.make(view, "Too close to another bottle.", Snackbar.LENGTH_LONG).show();
+                    return;
+                }
+
+                Intent intent = new Intent(ctx, CreateMessageActivity.class);
+                intent.putExtra(CreateMessageActivity.LAST_KNOWN_LOCATION, (Parcelable) lastKnownGeoPoint);
                 startActivity(intent);
             } else {
                 Snackbar.make(view, "Log in to create messages.", Snackbar.LENGTH_LONG).show();

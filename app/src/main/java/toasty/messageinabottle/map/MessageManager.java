@@ -15,6 +15,7 @@ import toasty.messageinabottle.data.Message;
 public class MessageManager implements IMyLocationConsumer {
 
     public static final double IN_RANGE_LIMIT = 50; // meters
+    private static final double USER_RANGE_LIMIT = 25; // meters
 
     private final MapView mapView;
     private final List<BottleMarker> activeMarkers = new ArrayList<>();
@@ -64,5 +65,13 @@ public class MessageManager implements IMyLocationConsumer {
     private void checkRange(BottleMarker bottleMarker, GeoPoint locationGeoPoint) {
         boolean inRange = locationGeoPoint.distanceToAsDouble(bottleMarker.getPosition()) <= IN_RANGE_LIMIT;
         bottleMarker.setInRange(inRange);
+    }
+
+    public boolean userIsTooClose(GeoPoint lastKnownLocation) {
+        for (BottleMarker marker : activeMarkers) {
+            if (lastKnownLocation.distanceToAsDouble(marker.getPosition()) <= USER_RANGE_LIMIT)
+                return true;
+        }
+        return false;
     }
 }
