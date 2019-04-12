@@ -1,5 +1,6 @@
 package toasty.messageinabottle;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -7,6 +8,7 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import toasty.messageinabottle.data.LoginResult;
@@ -116,6 +118,7 @@ public class LoginActivity extends AppCompatActivity {
         private final String mPassword;
         private final boolean signIn;
         private final LiveBackend backend;
+        private Exception taskFailedException;
 
         UserLoginTask(String email, String password, boolean signIn) {
             mEmail = email;
@@ -126,10 +129,15 @@ public class LoginActivity extends AppCompatActivity {
 
         @Override
         protected LoginResult doInBackground(Void... params) {
-            if (signIn) {
-                return backend.attemptLogin(mEmail, mPassword);
-            } else {
-                return backend.attemptCreateAccount(mEmail, mPassword);
+            try {
+                if (signIn) {
+                    return backend.attemptLogin(mEmail, mPassword);
+                } else {
+                    return backend.attemptCreateAccount(mEmail, mPassword);
+                }
+            } catch (Exception e) {
+                taskFailedException = e;
+                return new LoginResult(LoginResult.EXCEPTION_FAILURE);
             }
         }
 
@@ -137,20 +145,24 @@ public class LoginActivity extends AppCompatActivity {
         protected void onPostExecute(final LoginResult result) {
             userLoginTask = null;
 
-            switch (result) {
-                case LOGIN_SUCCESSFUL:
-                    setResult(LOGIN_SUCCESS);
+            if (taskFailedException != null) {
+                Toast.makeText(LoginActivity.this, "Exception while performing network request.", Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            switch (result.getResultType()) {
+                case LoginResult.LOGIN_SUCCESSFUL:
+                case LoginResult.ACCOUNT_SUCCESSFULLY_CREATED:
+                    Intent intent = new Intent();
+                    intent.putExtra(MapActivity.USER_ID_KEY, result.getUserID());
+                    setResult(LOGIN_SUCCESS, intent);
                     finish();
                     break;
-                case ACCOUNT_SUCCESSFULLY_CREATED:
-                    setResult(LOGIN_SUCCESS);
-                    finish();
-                    break;
-                case USERNAME_ALREADY_EXISTS:
+                case LoginResult.USERNAME_ALREADY_EXISTS:
                     username.setError(getString(R.string.username_already_exists));
                     username.requestFocus();
                     break;
-                case INCORRECT_PASSWORD:
+                case LoginResult.INCORRECT_PASSWORD:
                     password.setError(getString(R.string.error_incorrect_password));
                     password.requestFocus();
                     break;

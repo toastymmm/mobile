@@ -27,6 +27,8 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import toasty.messageinabottle.data.LoginResult;
 import toasty.messageinabottle.data.Message;
+import toasty.messageinabottle.data.cookie.CookieDatabaseAccessor;
+import toasty.messageinabottle.data.cookie.DatabaseCookie;
 import toasty.messageinabottle.data.remote.Favorite;
 import toasty.messageinabottle.data.remote.RemoteMessage;
 
@@ -37,6 +39,7 @@ public class LiveBackend {
     private static LiveBackend backend;
 
     private final Gson gson = new Gson();
+    private final Context ctx;
     private final OkHttpClient client;
 
     public static LiveBackend getInstance(Context ctx) {
@@ -44,6 +47,7 @@ public class LiveBackend {
     }
 
     private LiveBackend(Context ctx) {
+        this.ctx = ctx;
         PersistentCookieJar cookieJar = new PersistentCookieJar(ctx);
         client = new OkHttpClient.Builder()
                 .readTimeout(0, TimeUnit.MILLISECONDS)
@@ -248,15 +252,16 @@ public class LiveBackend {
             String body = response.body().string();
             Log.d(tag, body);
             if (response.code() == 200) {
-                return LoginResult.LOGIN_SUCCESSFUL;
+                String userID = getUserIDCookieValue();
+                return new LoginResult(LoginResult.LOGIN_SUCCESSFUL, userID);
             } else {
-                return LoginResult.INCORRECT_PASSWORD;
+                return new LoginResult(LoginResult.INCORRECT_PASSWORD);
             }
 
         } catch (IOException e) {
             e.printStackTrace();
             Log.d(tag, e.toString());
-            return LoginResult.INCORRECT_PASSWORD;
+            return new LoginResult(LoginResult.INCORRECT_PASSWORD);
         }
     }
 
@@ -275,15 +280,23 @@ public class LiveBackend {
             String body = response.body().string();
             Log.d(tag, body);
             if (response.code() == 200) {
-                return LoginResult.ACCOUNT_SUCCESSFULLY_CREATED;
+                String userID = getUserIDCookieValue();
+                return new LoginResult(LoginResult.ACCOUNT_SUCCESSFULLY_CREATED, userID);
             } else {
-                return LoginResult.USERNAME_ALREADY_EXISTS;
+                return new LoginResult(LoginResult.USERNAME_ALREADY_EXISTS);
             }
 
         } catch (IOException e) {
             e.printStackTrace();
             Log.d(tag, e.toString());
-            return LoginResult.INCORRECT_PASSWORD;
+            return new LoginResult(LoginResult.INCORRECT_PASSWORD);
         }
+    }
+
+    private String getUserIDCookieValue() {
+        List<DatabaseCookie> cookieList = CookieDatabaseAccessor.getCookieDatabase(ctx).databaseCookieDao().find("userid");
+        if (cookieList.size() != 1)
+            throw new RuntimeException("Too many userid cookies");
+        return cookieList.get(0).value;
     }
 }

@@ -61,10 +61,12 @@ public class MapActivity extends AppCompatActivity
     public static final int MY_PERMISSION_REQUEST_CODE = 1;
 
     public static final String LOGGED_IN_STATE_KEY = "LOGGED_IN";
+    public static final String USER_ID_KEY = "USER_ID";
 
     private MapView mapView;
 
     private boolean loggedIn = false;
+    private String userID = "";
     private MenuItem loginMenuItem;
     private MenuItem logoutMenuItem;
     private MenuItem savedMenuItem;
@@ -179,6 +181,7 @@ public class MapActivity extends AppCompatActivity
         SharedPreferences preferences = getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         editor.putBoolean(LOGGED_IN_STATE_KEY, loggedIn);
+        editor.putString(USER_ID_KEY, userID);
         editor.apply();
 
         Log.i("TOAST", "Shutting down heartbeat thread.");
@@ -195,6 +198,7 @@ public class MapActivity extends AppCompatActivity
 
         SharedPreferences preferences = getPreferences(Context.MODE_PRIVATE);
         loggedIn = preferences.getBoolean(LOGGED_IN_STATE_KEY, false);
+        userID = preferences.getString(USER_ID_KEY, "");
         updateLoginVisibility();
 
         if (executor == null || executor.isShutdown()) {
@@ -211,12 +215,14 @@ public class MapActivity extends AppCompatActivity
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putBoolean(LOGGED_IN_STATE_KEY, loggedIn);
+        outState.putString(USER_ID_KEY, userID);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         loggedIn = savedInstanceState.getBoolean(LOGGED_IN_STATE_KEY);
+        userID = savedInstanceState.getString(USER_ID_KEY);
         updateLoginVisibility();
     }
 
@@ -241,8 +247,8 @@ public class MapActivity extends AppCompatActivity
         } else if (id == R.id.logout) {
             new Thread(() -> {
                 DatabaseCookieDao cookieDao = CookieDatabaseAccessor.getCookieDatabase(this).databaseCookieDao();
-                // TODO remove userid if it is ever provided
                 cookieDao.remove("username");
+                cookieDao.remove("userid");
                 cookieDao.remove("sid");
             }).start();
 
@@ -269,9 +275,13 @@ public class MapActivity extends AppCompatActivity
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == LOGIN_REQUEST_CODE && resultCode == LoginActivity.LOGIN_SUCCESS) {
+            userID = data.getStringExtra(USER_ID_KEY);
             Toast.makeText(this, "Logged in", Toast.LENGTH_LONG).show();
             loggedIn = true;
-            getPreferences(Activity.MODE_PRIVATE).edit().putBoolean(LOGGED_IN_STATE_KEY, loggedIn).apply();
+            getPreferences(Activity.MODE_PRIVATE).edit()
+                    .putBoolean(LOGGED_IN_STATE_KEY, loggedIn)
+                    .putString(USER_ID_KEY, userID)
+                    .apply();
         }
     }
 
