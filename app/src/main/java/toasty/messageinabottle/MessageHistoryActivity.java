@@ -15,6 +15,7 @@ import toasty.messageinabottle.data.Message;
 import toasty.messageinabottle.data.MessagePreviewAdapter;
 import toasty.messageinabottle.exception.AuthenticationException;
 import toasty.messageinabottle.io.LiveBackend;
+import toasty.messageinabottle.io.UsernameFetchTask;
 
 public class MessageHistoryActivity extends AppCompatActivity {
 
@@ -75,6 +76,11 @@ public class MessageHistoryActivity extends AppCompatActivity {
             displayedMessages.clear();
             displayedMessages.addAll(messages);
             adapter.notifyDataSetChanged();
+
+            for (Message message : displayedMessages) {
+                UsernameFetchTask usernameFetchTask = new UsernameFetchTask(backend, message, () -> adapter.notifyDataSetChanged());
+                usernameFetchTask.execute();
+            }
         }
     }
 }

@@ -31,6 +31,7 @@ import toasty.messageinabottle.data.Message;
 import toasty.messageinabottle.data.cookie.CookieDatabaseAccessor;
 import toasty.messageinabottle.data.cookie.DatabaseCookie;
 import toasty.messageinabottle.data.remote.Favorite;
+import toasty.messageinabottle.data.remote.FullUser;
 import toasty.messageinabottle.data.remote.RemoteMessage;
 
 public class LiveBackend {
@@ -296,6 +297,19 @@ public class LiveBackend {
         }
     }
 
+
+    public String username(String id) throws IOException {
+        Request req = new Request.Builder().url("http://toastymmm.hopto.org/api/user/" + id).get().build();
+
+        try (Response response = client.newCall(req).execute()) {
+            if (response.code() != 200)
+                throw new IOException("Server returned invalid code: " + response.code());
+            FullUser user = gson.fromJson(response.body().charStream(), FullUser.class);
+            if (!user._id.equals(id))
+                throw new RuntimeException("Server returned the wrong user!?");
+            return user.username;
+        }
+    }
 
     private String getUserIDCookieValue() {
         List<DatabaseCookie> cookieList = CookieDatabaseAccessor.getCookieDatabase(ctx).databaseCookieDao().find("userid");

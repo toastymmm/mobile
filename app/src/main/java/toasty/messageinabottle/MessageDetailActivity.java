@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import toasty.messageinabottle.data.Message;
 import toasty.messageinabottle.io.LiveBackend;
+import toasty.messageinabottle.io.UsernameFetchTask;
 
 public class MessageDetailActivity extends AppCompatActivity implements DialogInterface.OnClickListener {
 
@@ -51,6 +52,11 @@ public class MessageDetailActivity extends AppCompatActivity implements DialogIn
         author.setText(message.getAuthor().getUsername());
         date.setText(message.getCreated().toString());
         updateFloatingActionButtonIcon(message);
+
+        if (message.getAuthor().getUsername() == null) {
+            UsernameFetchTask usernameFetchTask = new UsernameFetchTask(LiveBackend.getInstance(this), message, () -> author.setText(message.getAuthor().getUsername()));
+            usernameFetchTask.execute();
+        }
 
         reportButton.setOnClickListener((v) -> {
             Log.i("TOAST", "Report confirmation triggered.");

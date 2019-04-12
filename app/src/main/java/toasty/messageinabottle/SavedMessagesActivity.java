@@ -16,6 +16,7 @@ import toasty.messageinabottle.data.Message;
 import toasty.messageinabottle.data.MessagePreviewAdapter;
 import toasty.messageinabottle.exception.AuthenticationException;
 import toasty.messageinabottle.io.LiveBackend;
+import toasty.messageinabottle.io.UsernameFetchTask;
 
 public class SavedMessagesActivity extends AppCompatActivity {
 
@@ -77,10 +78,16 @@ public class SavedMessagesActivity extends AppCompatActivity {
                 finish();
                 return;
             }
+
             Log.i("TOAST", "Updating favorites on main thread.");
             activeMessages.clear();
             activeMessages.addAll(messages);
             messagePreviewAdapter.notifyDataSetChanged();
+
+            for (Message message : activeMessages) {
+                UsernameFetchTask usernameFetchTask = new UsernameFetchTask(backend, message, () -> messagePreviewAdapter.notifyDataSetChanged());
+                usernameFetchTask.execute();
+            }
         }
     }
 }

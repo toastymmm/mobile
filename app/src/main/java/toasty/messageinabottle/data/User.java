@@ -7,7 +7,7 @@ import java.util.Objects;
 
 public class User implements Parcelable {
 
-    public static final Parcelable.Creator<User> CREATOR = new Parcelable.Creator<User>() {
+    public static final Creator<User> CREATOR = new Creator<User>() {
         @Override
         public User createFromParcel(Parcel source) {
             return new User(source);
@@ -41,6 +41,10 @@ public class User implements Parcelable {
 
     public String getUsername() {
         return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     @Override
