@@ -22,6 +22,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import toasty.messageinabottle.data.LoginResult;
 import toasty.messageinabottle.data.Message;
+import toasty.messageinabottle.data.remote.Favorite;
 import toasty.messageinabottle.data.remote.RemoteMessage;
 
 public class LiveBackend {
@@ -158,19 +159,33 @@ public class LiveBackend {
             if (response.body() == null)
                 return new ArrayList<>();
 
-            RemoteMessage[] messages = gson.fromJson(response.body().charStream(), RemoteMessage[].class);
+            Favorite[] favorites = gson.fromJson(response.body().charStream(), Favorite[].class);
 
             // Convert the RemoteMessages into Messages
             List<Message> result = new ArrayList<>();
-            for (RemoteMessage rm : messages) {
+            for (Favorite fav : favorites) {
                 try {
-                    result.add(rm.toMessage());
+                    result.add(message(fav.messageId));
                 } catch (ParseException e) {
                     // TODO handle me
                     throw new RuntimeException(e);
                 }
             }
             return result;
+        }
+    }
+
+    public Message message(String id) throws IOException, ParseException {
+        Request req = new Request.Builder().url("http://toastymmm.hopto.org/api/message/" + id).get().build();
+
+        try (Response response = client.newCall(req).execute()) {
+            if (response.code() != 200)
+                throw new IOException("Server returned invalid code: " + response.code());
+            if (response.body() == null)
+                return null;
+
+            RemoteMessage remoteMessages = gson.fromJson(response.body().charStream(), RemoteMessage.class);
+            return remoteMessages.toMessage();
         }
     }
 

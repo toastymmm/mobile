@@ -151,9 +151,11 @@ public class MessageDetailActivity extends AppCompatActivity implements DialogIn
         @Override
         protected void onPostExecute(Boolean success) {
             if (taskFailedException != null) {
+                Log.i("TOAST", "Failed to do favorite operation", taskFailedException);
                 // TODO notify the user
                 return;
             }
+            Log.i("TOAST", "Marking the message as: " + success);
             taskMessage.setFavorite(success);
             updateFloatingActionButtonIcon(taskMessage);
         }
