@@ -10,8 +10,11 @@ import org.osmdroid.api.IGeoPoint;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -160,19 +163,30 @@ public class LiveBackend {
     }
 
     public void unmarkFavorite(Message message) throws IOException {
-        HttpUrl url = HttpUrl.get("http://toastymmm.hopto.org/api/favorite/" + message.getID());
+        List<Favorite> favorites = rawFavorites();
+
+        Map<String, String> conversion = new HashMap<>();
+        for (Favorite favorite : favorites) {
+            conversion.put(favorite.messageId, favorite._id);
+        }
+
+        // No need to un-favorite
+        if (!conversion.containsKey(message.getID()))
+            return;
+
+        String favoriteID = conversion.get(message.getID());
+
+        HttpUrl url = HttpUrl.get("http://toastymmm.hopto.org/api/favorite/" + favoriteID);
 
         Request req = new Request.Builder().url(url).delete().build();
 
-        // FIXME delete endpoint takes the wrong id value
         try (Response response = client.newCall(req).execute()) {
             if (response.code() != 200)
                 throw new IOException("Server returned invalid code: " + response.code());
         }
     }
 
-
-    public List<Message> favorites() throws IOException {
+    public List<Favorite> rawFavorites() throws IOException {
         HttpUrl url = HttpUrl.get("http://toastymmm.hopto.org/api/favorites/me");
 
         Request req = new Request.Builder().get().url(url).build();
@@ -185,21 +199,24 @@ public class LiveBackend {
                 return new ArrayList<>();
 
             Favorite[] favorites = gson.fromJson(response.body().charStream(), Favorite[].class);
-
-            // Convert the RemoteMessages into Messages
-            List<Message> result = new ArrayList<>();
-            for (Favorite fav : favorites) {
-                try {
-                    Message message = message(fav.messageId);
-                    message.setFavorite(true);
-                    result.add(message);
-                } catch (ParseException e) {
-                    // TODO handle me
-                    throw new RuntimeException(e);
-                }
-            }
-            return result;
+            return Arrays.asList(favorites);
         }
+    }
+
+
+    public List<Message> favorites() throws IOException {
+        List<Message> result = new ArrayList<>();
+        for (Favorite fav : rawFavorites()) {
+            try {
+                Message message = message(fav.messageId);
+                message.setFavorite(true);
+                result.add(message);
+            } catch (ParseException e) {
+                // TODO handle me
+                throw new RuntimeException(e);
+            }
+        }
+        return result;
     }
 
     public Message message(String id) throws IOException, ParseException {
