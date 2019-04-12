@@ -10,9 +10,7 @@ import org.osmdroid.api.IGeoPoint;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.FormBody;
@@ -74,8 +72,9 @@ public class LiveBackend {
         Request req = new Request.Builder().get().url(url).build();
 
         try (Response response = client.newCall(req).execute()) {
-            if (response.body() == null)
+            if (response.body() == null) {
                 return new ArrayList<>();
+            }
 
             // Parse the response body using Gson
             RemoteMessage[] messages = gson.fromJson(response.body().string(), RemoteMessage[].class);
@@ -171,24 +170,6 @@ public class LiveBackend {
                 }
             }
             return result;
-        }
-    }
-
-    public void login(String username, String password) throws IOException {
-        HttpUrl url = HttpUrl.get("http://toastymmm.hopto.org/api/userLogin");
-
-        Map<String, String> map = new HashMap<>();
-        map.put("username", username);
-        map.put("password", password);
-
-        String json = gson.toJson(map);
-        RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, json);
-
-        Request req = new Request.Builder().url(url).post(body).build();
-
-        try (Response response = client.newCall(req).execute()) {
-            if (response.code() != 200)
-                throw new IOException("Server returned invalid code: " + response.code());
         }
     }
 

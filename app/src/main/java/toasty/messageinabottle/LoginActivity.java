@@ -15,7 +15,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -25,7 +24,6 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.material.snackbar.Snackbar;
 
@@ -34,6 +32,7 @@ import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import toasty.messageinabottle.data.LoginResult;
 import toasty.messageinabottle.io.LiveBackend;
 
 import static android.Manifest.permission.READ_CONTACTS;
@@ -78,33 +77,31 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mEmailView = findViewById(R.id.email);
         populateAutoComplete();
 
-        if (BuildConfig.DEBUG) {
-            Button debugLogin = findViewById(R.id.debug_login);
-            debugLogin.setVisibility(View.VISIBLE);
-            debugLogin.setOnClickListener((view) -> {
-                LiveBackend backend = new LiveBackend(this);
-                DebugLoginTask debugLoginTask = new DebugLoginTask(backend);
-                debugLoginTask.execute("brad", "asdf");
-            });
-        }
-
         mPasswordView = findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
                 if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
-                    attemptLogin();
+                    attemptSignInOrCreate(true);
                     return true;
                 }
                 return false;
             }
         });
 
-        Button mEmailSignInButton = findViewById(R.id.email_sign_in_button);
-        mEmailSignInButton.setOnClickListener(new OnClickListener() {
+        Button emailSignInButton = findViewById(R.id.email_sign_in_button);
+        emailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                attemptLogin();
+                attemptSignInOrCreate(true);
+            }
+        });
+
+        Button createAccountButton = findViewById(R.id.create_account_button);
+        createAccountButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                attemptSignInOrCreate(false);
             }
         });
 
@@ -155,13 +152,15 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
     }
 
-
     /**
      * Attempts to sign in or register the account specified by the login form.
      * If there are form errors (invalid email, missing fields, etc.), the
      * errors are presented and no actual login attempt is made.
+     *
+     * If signIn is true, then this method will attempt to sign the user in.
+     * Otherwise, it will try to create a new account
      */
-    private void attemptLogin() {
+    private void attemptSignInOrCreate(boolean signIn) {
         if (mAuthTask != null) {
             return;
         }
@@ -203,7 +202,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(email, password);
+            mAuthTask = new UserLoginTask(email, password, signIn);
             mAuthTask.execute((Void) null);
         }
     }
@@ -312,52 +311,61 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
      */
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
+    public class UserLoginTask extends AsyncTask<Void, Void, LoginResult> {
 
         private final String mEmail;
         private final String mPassword;
+        private final boolean signIn;
+        private LiveBackend backend;
 
-        UserLoginTask(String email, String password) {
+        UserLoginTask(String email, String password, boolean signIn) {
             mEmail = email;
             mPassword = password;
+            this.signIn = signIn;
+            backend = LiveBackend.getInstance(getApplicationContext());
         }
 
         @Override
-        protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
+        protected LoginResult doInBackground(Void... params) {
 
             try {
                 // Simulate network access.
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
-                return false;
+                return null;
             }
 
-            for (String credential : DUMMY_CREDENTIALS) {
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mEmail)) {
-                    // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
-                }
+            if (signIn) {
+                return backend.attemptLogin(mEmail, mPassword);
+            } else {
+                return backend.attemptCreateAccount(mEmail, mPassword);
             }
 
-            // TODO: register the new account here.
-            return true;
         }
 
         @Override
-        protected void onPostExecute(final Boolean success) {
+        protected void onPostExecute(final LoginResult result) {
             mAuthTask = null;
             showProgress(false);
 
-            if (success) {
-                Intent intent = new Intent();
-                intent.putExtra(TOKEN_KEY, "TOKEN GOES HERE!");
-                setResult(RESULT_OK, intent);
-                finish();
-            } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
+            Intent intent;
+            switch (result) {
+                case LOGIN_SUCCESSFUL:
+                    setResult(LOGIN_SUCCESS);
+                    finish();
+                    break;
+                case ACCOUNT_SUCCESSFULLY_CREATED:
+                    setResult(LOGIN_SUCCESS);
+                    finish();
+                    break;
+                case USERNAME_ALREADY_EXISTS:
+                    mEmailView.setError(getString(R.string.username_already_exists));
+                    mEmailView.requestFocus();
+                    break;
+                case INCORRECT_PASSWORD:
+                    mPasswordView.setError(getString(R.string.error_incorrect_password));
+                    mPasswordView.requestFocus();
+                    break;
             }
         }
 
@@ -365,44 +373,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         protected void onCancelled() {
             mAuthTask = null;
             showProgress(false);
-        }
-    }
-
-    private class DebugLoginTask extends AsyncTask<String, Void, Void> {
-
-        private final LiveBackend backend;
-        private Exception taskFailedException;
-
-        private DebugLoginTask(LiveBackend backend) {
-            this.backend = backend;
-        }
-
-        @Override
-        protected Void doInBackground(String... params) {
-            if (params.length != 2)
-                throw new IllegalArgumentException("DebugLoginTask takes two parameters (username, password)");
-            String username = params[0];
-            String password = params[1];
-
-            try {
-                backend.login(username, password);
-                Log.i("TOAST", "debug logged in");
-            } catch (Exception e) {
-                Log.i("TOAST", "debug error logging in", e);
-                taskFailedException = e;
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            if (taskFailedException != null) {
-                Toast.makeText(getApplicationContext(), "debug failed to login", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            Toast.makeText(getApplicationContext(), "debug logged-in", Toast.LENGTH_SHORT).show();
-            setResult(LOGIN_SUCCESS);
-            finish();
         }
     }
 }

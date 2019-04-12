@@ -37,7 +37,7 @@ public class MessageDetailActivity extends AppCompatActivity implements DialogIn
 
         fab = findViewById(R.id.fab);
         fab.setOnClickListener(view -> {
-            LiveBackend backend = new LiveBackend(this);
+            LiveBackend backend = LiveBackend.getInstance(this);
             ToggleFavoriteTask toggleFavoriteTask = new ToggleFavoriteTask(backend);
             toggleFavoriteTask.doInBackground(message);
         });
@@ -83,7 +83,7 @@ public class MessageDetailActivity extends AppCompatActivity implements DialogIn
         switch (which) {
             case DialogInterface.BUTTON_POSITIVE:
                 Log.i("TOAST", "Sending report.");
-                LiveBackend backend = new LiveBackend(this);
+                LiveBackend backend = LiveBackend.getInstance(this);
                 new ReportMessageTask(backend).execute(message);
                 break;
             case DialogInterface.BUTTON_NEGATIVE:

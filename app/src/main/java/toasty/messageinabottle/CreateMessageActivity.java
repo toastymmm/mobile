@@ -70,7 +70,7 @@ public class CreateMessageActivity extends AppCompatActivity {
             // TODO id and username are wrong
             Message message = new Message("", editTextContent, lastKnownLocation, new User("me"), new Date());
 
-            LiveBackend backend = new LiveBackend(this);
+            LiveBackend backend = LiveBackend.getInstance(this);
             CreateMessageTask createMessageTask = new CreateMessageTask(backend);
             createMessageTask.execute(message);
         });
@@ -107,6 +107,7 @@ public class CreateMessageActivity extends AppCompatActivity {
                 return;
             }
             Toast.makeText(getApplicationContext(), "Message created!", Toast.LENGTH_SHORT).show();
+            finish();
         }
     }
 }

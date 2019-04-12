@@ -39,7 +39,7 @@ public class SavedMessagesActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        LiveBackend backend = new LiveBackend(this);
+        LiveBackend backend = LiveBackend.getInstance(this);
         new FetchSavedTask(backend).execute();
     }
 

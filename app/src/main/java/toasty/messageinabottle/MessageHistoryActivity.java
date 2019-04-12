@@ -37,8 +37,8 @@ public class MessageHistoryActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        LiveBackend liveBackend = new LiveBackend(this);
-        new FetchFavoritesTask(liveBackend).execute();
+        LiveBackend backend = LiveBackend.getInstance(this);
+        new FetchFavoritesTask(backend).execute();
     }
 
     private class FetchFavoritesTask extends AsyncTask<Void, Void, List<Message>> {
