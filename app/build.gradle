@@ -42,6 +42,10 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.1.0-alpha04'
     implementation 'com.google.code.gson:gson:2.8.5'
     implementation 'com.squareup.okhttp3:okhttp:3.14.0'
+
+    // We're stuck at 2.1.0-alpha04 because 2.1.0-alpha05 and 2.1.0-alpha06 cause issues with the build
+    //noinspection GradleDependency
     implementation 'androidx.room:room-runtime:2.1.0-alpha04'
+    //noinspection GradleDependency
     annotationProcessor 'androidx.room:room-compiler:2.1.0-alpha04'
 }
