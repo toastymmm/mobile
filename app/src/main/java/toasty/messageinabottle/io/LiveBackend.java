@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import okhttp3.FormBody;
 import okhttp3.HttpUrl;
@@ -73,7 +74,7 @@ public class LiveBackend {
         }
     }
 
-    public List<Message> messages(IGeoPoint geoPoint) throws IOException {
+    public List<Message> messages(IGeoPoint geoPoint, AtomicBoolean loggedIn) throws IOException {
         HttpUrl url = HttpUrl.get("http://toastymmm.hopto.org/api/messages")
                 .newBuilder()
                 .addQueryParameter("lat", Double.toString(geoPoint.getLatitude()))
@@ -83,8 +84,10 @@ public class LiveBackend {
         Request req = new Request.Builder().get().url(url).build();
 
         Set<String> favoriteIDs = new HashSet<>();
-        for (Message favorite : favorites()) {
-            favoriteIDs.add(favorite.getID());
+        if (loggedIn.get()) {
+            for (Message favorite : favorites()) {
+                favoriteIDs.add(favorite.getID());
+            }
         }
 
         try (Response response = client.newCall(req).execute()) {
@@ -292,6 +295,7 @@ public class LiveBackend {
             return new LoginResult(LoginResult.INCORRECT_PASSWORD);
         }
     }
+
 
     private String getUserIDCookieValue() {
         List<DatabaseCookie> cookieList = CookieDatabaseAccessor.getCookieDatabase(ctx).databaseCookieDao().find("userid");

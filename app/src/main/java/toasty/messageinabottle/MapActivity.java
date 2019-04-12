@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -67,7 +68,7 @@ public class MapActivity extends AppCompatActivity
 
     private MapView mapView;
 
-    private boolean loggedIn = false;
+    private AtomicBoolean loggedIn = new AtomicBoolean(false);
     private String userID = "";
     private MenuItem loginMenuItem;
     private MenuItem logoutMenuItem;
@@ -96,7 +97,7 @@ public class MapActivity extends AppCompatActivity
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(view -> {
-            if (loggedIn) {
+            if (loggedIn.get()) {
                 Location lastKnownLocation = locationProvider.getLastKnownLocation();
                 if (lastKnownLocation == null) {
                     Toast.makeText(ctx, "Wait for location service.", Toast.LENGTH_LONG).show();
@@ -160,7 +161,7 @@ public class MapActivity extends AppCompatActivity
         Handler animationHandler = new Handler(Looper.getMainLooper());
         locationOverlay.runOnFirstFix(() -> {
             // Update the messages as soon as we get a location
-            executor.execute(new HeartbeatRunnable(ctx, uiThreadMessageHandler, locationProvider));
+            executor.execute(new HeartbeatRunnable(ctx, uiThreadMessageHandler, locationProvider, loggedIn));
             // Move the map to where the new location is
             animationHandler.post(() -> {
                 mapView.getController().setCenter(locationOverlay.getMyLocation());
@@ -184,7 +185,7 @@ public class MapActivity extends AppCompatActivity
 
         SharedPreferences preferences = getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
-        editor.putBoolean(LOGGED_IN_STATE_KEY, loggedIn);
+        editor.putBoolean(LOGGED_IN_STATE_KEY, loggedIn.get());
         editor.putString(USER_ID_KEY, userID);
         editor.apply();
 
@@ -201,7 +202,7 @@ public class MapActivity extends AppCompatActivity
         locationOverlay.setEnableAutoStop(false);
 
         SharedPreferences preferences = getPreferences(Context.MODE_PRIVATE);
-        loggedIn = preferences.getBoolean(LOGGED_IN_STATE_KEY, false);
+        loggedIn.set(preferences.getBoolean(LOGGED_IN_STATE_KEY, false));
         userID = preferences.getString(USER_ID_KEY, "");
         updateLoginVisibility();
 
@@ -209,7 +210,8 @@ public class MapActivity extends AppCompatActivity
             executor = Executors.newSingleThreadScheduledExecutor();
         }
         Log.i("TOAST", "Setting up heartbeat thread.");
-        executor.scheduleAtFixedRate(new HeartbeatRunnable(getApplicationContext(), uiThreadMessageHandler, locationProvider),
+        executor.scheduleAtFixedRate(
+                new HeartbeatRunnable(getApplicationContext(), uiThreadMessageHandler, locationProvider, loggedIn),
                 0, 5, TimeUnit.SECONDS);
 
         ensureLocationPermission();
@@ -218,14 +220,14 @@ public class MapActivity extends AppCompatActivity
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putBoolean(LOGGED_IN_STATE_KEY, loggedIn);
+        outState.putBoolean(LOGGED_IN_STATE_KEY, loggedIn.get());
         outState.putString(USER_ID_KEY, userID);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        loggedIn = savedInstanceState.getBoolean(LOGGED_IN_STATE_KEY);
+        loggedIn.set(savedInstanceState.getBoolean(LOGGED_IN_STATE_KEY));
         userID = savedInstanceState.getString(USER_ID_KEY);
         updateLoginVisibility();
     }
@@ -256,7 +258,7 @@ public class MapActivity extends AppCompatActivity
                 cookieDao.remove("sid");
             }).start();
 
-            loggedIn = false;
+            loggedIn.set(false);
             updateLoginVisibility();
         } else if (id == R.id.history) {
             Intent intent = new Intent(this, MessageHistoryActivity.class);
@@ -283,19 +285,19 @@ public class MapActivity extends AppCompatActivity
                 throw new RuntimeException("Unable to get userID");
             userID = data.getStringExtra(USER_ID_KEY);
             Toast.makeText(this, "Logged in", Toast.LENGTH_LONG).show();
-            loggedIn = true;
+            loggedIn.set(true);
             getPreferences(Activity.MODE_PRIVATE).edit()
-                    .putBoolean(LOGGED_IN_STATE_KEY, loggedIn)
+                    .putBoolean(LOGGED_IN_STATE_KEY, loggedIn.get())
                     .putString(USER_ID_KEY, userID)
                     .apply();
         }
     }
 
     private void updateLoginVisibility() {
-        loginMenuItem.setVisible(!loggedIn);
-        logoutMenuItem.setVisible(loggedIn);
-        savedMenuItem.setVisible(loggedIn);
-        historyMenuItem.setVisible(loggedIn);
+        loginMenuItem.setVisible(!loggedIn.get());
+        logoutMenuItem.setVisible(loggedIn.get());
+        savedMenuItem.setVisible(loggedIn.get());
+        historyMenuItem.setVisible(loggedIn.get());
     }
 
     private void ensureLocationPermission() {

@@ -46,12 +46,11 @@ public class MessageDetailActivity extends AppCompatActivity implements DialogIn
         if (message == null) {
             // Pass a message to display via the intent and using MESSAGE_KEY
             throw new RuntimeException("A message must be passed to the MessageDetailActivity");
-        } else {
-            contents.setText(message.getMsg());
-            author.setText(message.getAuthor().getUsername());
-            date.setText(message.getCreated().toString());
-            updateFloatingActionButtonIcon(message);
         }
+        contents.setText(message.getMsg());
+        author.setText(message.getAuthor().getUsername());
+        date.setText(message.getCreated().toString());
+        updateFloatingActionButtonIcon(message);
 
         reportButton.setOnClickListener((v) -> {
             Log.i("TOAST", "Report confirmation triggered.");

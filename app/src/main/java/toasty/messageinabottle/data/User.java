@@ -18,14 +18,25 @@ public class User implements Parcelable {
             return new User[size];
         }
     };
-    private final String username;
 
-    public User(String username) {
+    private final String id;
+    private String username;
+
+    public User(String id) {
+        this(id, null);
+    }
+
+    public User(String id, String username) {
+        this.id = id;
         this.username = username;
     }
 
     public User(Parcel in) {
-        this(in.readString());
+        this(in.readString(), in.readString());
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getUsername() {
@@ -37,12 +48,13 @@ public class User implements Parcelable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(getUsername(), user.getUsername());
+        return Objects.equals(id, user.id) &&
+                Objects.equals(username, user.username);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getUsername());
+        return Objects.hash(id, username);
     }
 
     @Override
@@ -52,6 +64,7 @@ public class User implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(id);
         dest.writeString(username);
     }
 }
