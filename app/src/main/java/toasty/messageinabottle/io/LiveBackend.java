@@ -244,12 +244,10 @@ public class LiveBackend {
                 .post(formBody)
                 .build();
 
-        try {
-            Response response = client.newCall(request).execute();
-            int code = response.code();
+        try (Response response = client.newCall(request).execute()) {
             String body = response.body().string();
             Log.d(tag, body);
-            if (code == 200) {
+            if (response.code() == 200) {
                 return LoginResult.LOGIN_SUCCESSFUL;
             } else {
                 return LoginResult.INCORRECT_PASSWORD;
@@ -273,12 +271,10 @@ public class LiveBackend {
                 .post(formBody)
                 .build();
 
-        try {
-            Response response = client.newCall(request).execute();
-            int code = response.code();
+        try (Response response = client.newCall(request).execute()) {
             String body = response.body().string();
             Log.d(tag, body);
-            if (code == 200) {
+            if (response.code() == 200) {
                 return LoginResult.ACCOUNT_SUCCESSFULLY_CREATED;
             } else {
                 return LoginResult.USERNAME_ALREADY_EXISTS;
