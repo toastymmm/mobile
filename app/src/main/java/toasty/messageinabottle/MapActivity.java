@@ -15,6 +15,8 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -129,6 +131,7 @@ public class MapActivity extends AppCompatActivity
         savedMenuItem = navigationView.getMenu().findItem(R.id.saved);
         historyMenuItem = navigationView.getMenu().findItem(R.id.history);
 
+        ProgressBar networkProgress = findViewById(R.id.network_progress);
         mapView = findViewById(R.id.map);
         locationOverlay = new WatchableMyLocationOverlay(mapView);
         locationProvider = locationOverlay.getMyLocationProvider();
@@ -162,6 +165,7 @@ public class MapActivity extends AppCompatActivity
             animationHandler.post(() -> {
                 mapView.getController().setCenter(locationOverlay.getMyLocation());
                 mapView.getController().setZoom(19.0);
+                networkProgress.setVisibility(View.GONE);
             });
         });
 
@@ -275,6 +279,8 @@ public class MapActivity extends AppCompatActivity
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == LOGIN_REQUEST_CODE && resultCode == LoginActivity.LOGIN_SUCCESS) {
+            if (data == null)
+                throw new RuntimeException("Unable to get userID");
             userID = data.getStringExtra(USER_ID_KEY);
             Toast.makeText(this, "Logged in", Toast.LENGTH_LONG).show();
             loggedIn = true;
