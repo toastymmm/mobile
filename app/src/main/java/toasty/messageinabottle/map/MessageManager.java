@@ -20,7 +20,7 @@ public class MessageManager implements IMyLocationConsumer {
     private final MapView mapView;
     private final List<BottleMarker> activeMarkers = new ArrayList<>();
     private GeoPoint lastKnownLocation;
-    private WatchableMyLocationOverlay locationOverlay;
+    private final WatchableMyLocationOverlay locationOverlay;
 
     public MessageManager(MapView mapView, WatchableMyLocationOverlay locationOverlay) {
         this.mapView = mapView;

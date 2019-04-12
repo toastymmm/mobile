@@ -22,15 +22,10 @@ public class MessageDetailActivity extends AppCompatActivity implements DialogIn
 
     private Message message;
     private FloatingActionButton fab;
-    private TextView contents;
-    private TextView author;
-    private TextView date;
-    private Button reportButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final Context ctx = getApplicationContext();
         setContentView(R.layout.activity_message_detail);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -42,10 +37,10 @@ public class MessageDetailActivity extends AppCompatActivity implements DialogIn
             toggleFavoriteTask.doInBackground(message);
         });
 
-        contents = findViewById(R.id.message_detail_message_contents);
-        author = findViewById(R.id.message_detail_author);
-        date = findViewById(R.id.message_detail_date);
-        reportButton = findViewById(R.id.report_button);
+        TextView contents = findViewById(R.id.message_detail_message_contents);
+        TextView author = findViewById(R.id.message_detail_author);
+        TextView date = findViewById(R.id.message_detail_date);
+        Button reportButton = findViewById(R.id.report_button);
 
         message = getIntent().getParcelableExtra(MESSAGE_KEY);
         if (message == null) {

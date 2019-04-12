@@ -77,7 +77,7 @@
                     android:layout_marginTop="16dp"
                     android:text="@string/action_sign_in"
                     android:textStyle="bold"
-                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
                     />
 
                 <Button
@@ -88,7 +88,7 @@
                     android:layout_marginTop="16dp"
                     android:text="@string/create_account"
                     android:textStyle="bold"
-                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"
                     />
             </RelativeLayout>
 

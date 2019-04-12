@@ -114,7 +114,7 @@ public class Message extends GeoPoint implements Parcelable {
         remoteMessage.feature.properties.category = "General"; // TODO categories
         remoteMessage.feature.properties.date = RemoteMessage.ISO8601.format(created);
         remoteMessage.feature.properties.numReports = 0;
-        remoteMessage.feature.geometry = Geometry.fromGeopoint(this);
+        remoteMessage.feature.geometry = Geometry.fromGeoPoint(this);
 
         Gson gson = new Gson();
         return gson.toJson(remoteMessage);

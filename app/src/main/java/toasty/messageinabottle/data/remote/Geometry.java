@@ -6,7 +6,7 @@ public class Geometry {
     public String type;
     public double[] coordinates;
 
-    public static Geometry fromGeopoint(IGeoPoint geoPoint) {
+    public static Geometry fromGeoPoint(IGeoPoint geoPoint) {
         Geometry geometry = new Geometry();
         geometry.type = "Point";
         geometry.coordinates = new double[]{geoPoint.getLongitude(), geoPoint.getLatitude()};

@@ -1,5 +1,7 @@
 package toasty.messageinabottle.data.remote;
 
+import android.annotation.SuppressLint;
+
 import com.google.gson.Gson;
 
 import org.osmdroid.util.GeoPoint;
@@ -13,6 +15,7 @@ import toasty.messageinabottle.data.User;
 
 public class RemoteMessage {
 
+    @SuppressLint("SimpleDateFormat")
     public static final DateFormat ISO8601 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
     public Feature feature;

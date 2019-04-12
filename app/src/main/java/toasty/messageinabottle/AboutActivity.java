@@ -18,12 +18,9 @@ public class AboutActivity extends AppCompatActivity {
         ImageView toastImageView = findViewById(R.id.toastImageView);
         TextView toastTextView = findViewById(R.id.toastTextView);
 
-        View.OnClickListener gitHubLaunchClickListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/toastymmm/"));
-                startActivity(intent);
-            }
+        View.OnClickListener gitHubLaunchClickListener = v -> {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/toastymmm/"));
+            startActivity(intent);
         };
 
         toastImageView.setOnClickListener(gitHubLaunchClickListener);

@@ -28,12 +28,13 @@ public class LiveBackend {
 
     private static final MediaType JSON_MEDIA_TYPE = MediaType.parse("application/json; charset=utf-8");
 
-    private final Gson gson = new Gson();
-    private OkHttpClient client;
     private static LiveBackend backend;
 
+    private final Gson gson = new Gson();
+    private final OkHttpClient client;
+
     public static LiveBackend getInstance(Context ctx) {
-        return backend==null?backend=new LiveBackend(ctx):backend;
+        return backend == null ? backend = new LiveBackend(ctx) : backend;
     }
 
     private LiveBackend(Context ctx) {
@@ -174,25 +175,24 @@ public class LiveBackend {
     }
 
     public LoginResult attemptLogin(String username, String password) {
-        String tag="in Live Backend: ";
-        RequestBody formBody=new FormBody.Builder()
+        String tag = "in Live Backend: ";
+        RequestBody formBody = new FormBody.Builder()
                 .add("username", username)
                 .add("password", password)
                 .build();
-        Request request=new Request.Builder()
+        Request request = new Request.Builder()
                 .url("http://toastymmm.hopto.org/api/userLogin")
                 .post(formBody)
                 .build();
 
         try {
-            Response response=client.newCall(request).execute();
-            int code=response.code();
-            String body=response.body().string();
+            Response response = client.newCall(request).execute();
+            int code = response.code();
+            String body = response.body().string();
             Log.d(tag, body);
-            if (code==200) {
+            if (code == 200) {
                 return LoginResult.LOGIN_SUCCESSFUL;
-            }
-            else {
+            } else {
                 return LoginResult.INCORRECT_PASSWORD;
             }
 
@@ -204,25 +204,24 @@ public class LiveBackend {
     }
 
     public LoginResult attemptCreateAccount(String username, String password) {
-        String tag="in Live Backend: ";
-        RequestBody formBody=new FormBody.Builder()
+        String tag = "in Live Backend: ";
+        RequestBody formBody = new FormBody.Builder()
                 .add("username", username)
                 .add("password", password)
                 .build();
-        Request request=new Request.Builder()
+        Request request = new Request.Builder()
                 .url("http://toastymmm.hopto.org/api/signup")
                 .post(formBody)
                 .build();
 
         try {
-            Response response=client.newCall(request).execute();
-            int code=response.code();
-            String body=response.body().string();
+            Response response = client.newCall(request).execute();
+            int code = response.code();
+            String body = response.body().string();
             Log.d(tag, body);
-            if (code==200) {
+            if (code == 200) {
                 return LoginResult.ACCOUNT_SUCCESSFULLY_CREATED;
-            }
-            else {
+            } else {
                 return LoginResult.USERNAME_ALREADY_EXISTS;
             }
 
