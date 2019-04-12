@@ -269,7 +269,7 @@ public class MapActivity extends AppCompatActivity
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == LOGIN_REQUEST_CODE && resultCode == LoginActivity.LOGIN_SUCCESS) {
-            Toast.makeText(this, "LOGIN SUCCESS", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Logged in", Toast.LENGTH_LONG).show();
             loggedIn = true;
             getPreferences(Activity.MODE_PRIVATE).edit().putBoolean(LOGGED_IN_STATE_KEY, loggedIn).apply();
         }

@@ -44,4 +44,5 @@
     <string name="date_placeholder">01/01/2019</string>
     <string name="message_preview_placeholder">Message preview…</string>
     <string name="george_washington">George Washington</string>
+    <string name="username">Username</string>
 </resources>
