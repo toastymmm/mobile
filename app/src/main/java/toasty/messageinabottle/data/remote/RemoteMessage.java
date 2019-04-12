@@ -37,7 +37,8 @@ public class RemoteMessage {
                         feature.geometry.coordinates[0]
                 ),
                 new User(creator),
-                ISO8601.parse(feature.properties.date)
+                ISO8601.parse(feature.properties.date),
+                false
         );
     }
 }

@@ -10,7 +10,9 @@ import org.osmdroid.api.IGeoPoint;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.FormBody;
@@ -73,6 +75,11 @@ public class LiveBackend {
 
         Request req = new Request.Builder().get().url(url).build();
 
+        Set<String> favoriteIDs = new HashSet<>();
+        for (Message favorite : favorites()) {
+            favoriteIDs.add(favorite.getID());
+        }
+
         try (Response response = client.newCall(req).execute()) {
             if (response.body() == null) {
                 return new ArrayList<>();
@@ -85,7 +92,13 @@ public class LiveBackend {
             List<Message> result = new ArrayList<>();
             for (RemoteMessage rm : messages) {
                 try {
-                    result.add(rm.toMessage());
+                    Message message = rm.toMessage();
+
+                    if (favoriteIDs.contains(message.getID())) {
+                        message.setFavorite(true);
+                    }
+
+                    result.add(message);
                 } catch (ParseException e) {
                     // TODO handle me
                     throw new RuntimeException(e);
@@ -100,6 +113,11 @@ public class LiveBackend {
 
         Request req = new Request.Builder().get().url(url).build();
 
+        Set<String> favoriteIDs = new HashSet<>();
+        for (Message favorite : favorites()) {
+            favoriteIDs.add(favorite.getID());
+        }
+
         try (Response response = client.newCall(req).execute()) {
             if (response.code() != 200)
                 throw new IOException("Server returned invalid code: " + response.code());
@@ -113,7 +131,13 @@ public class LiveBackend {
             List<Message> result = new ArrayList<>();
             for (RemoteMessage rm : messages) {
                 try {
-                    result.add(rm.toMessage());
+                    Message message = rm.toMessage();
+
+                    if (favoriteIDs.contains(message.getID())) {
+                        message.setFavorite(true);
+                    }
+
+                    result.add(message);
                 } catch (ParseException e) {
                     // TODO handle me
                     throw new RuntimeException(e);
@@ -140,6 +164,7 @@ public class LiveBackend {
 
         Request req = new Request.Builder().url(url).delete().build();
 
+        // FIXME delete endpoint takes the wrong id value
         try (Response response = client.newCall(req).execute()) {
             if (response.code() != 200)
                 throw new IOException("Server returned invalid code: " + response.code());
@@ -165,7 +190,9 @@ public class LiveBackend {
             List<Message> result = new ArrayList<>();
             for (Favorite fav : favorites) {
                 try {
-                    result.add(message(fav.messageId));
+                    Message message = message(fav.messageId);
+                    message.setFavorite(true);
+                    result.add(message);
                 } catch (ParseException e) {
                     // TODO handle me
                     throw new RuntimeException(e);

@@ -33,19 +33,19 @@ public class Message extends GeoPoint implements Parcelable {
     private final String msg;
     private final User author;
     private final Date created;
-    private boolean favorite = false; // TODO take from inputs
+    private boolean favorite;
 
-    public Message(String id, String msg, GeoPoint point, User author, Date created) {
+    public Message(String id, String msg, GeoPoint point, User author, Date created, boolean favorite) {
         super(point);
         this.id = id;
         this.msg = msg;
         this.author = author;
         this.created = created;
+        this.favorite = favorite;
     }
 
     public Message(Parcel in) {
-        this(in.readString(), in.readString(), GeoPoint.CREATOR.createFromParcel(in), User.CREATOR.createFromParcel(in), new Date(in.readLong()));
-
+        this(in.readString(), in.readString(), GeoPoint.CREATOR.createFromParcel(in), User.CREATOR.createFromParcel(in), (Date) in.readSerializable(), in.readByte() == (byte) 1);
     }
 
     public String getID() {
@@ -94,6 +94,7 @@ public class Message extends GeoPoint implements Parcelable {
         super.writeToParcel(out, flags);
         author.writeToParcel(out, flags);
         out.writeSerializable(created);
+        out.writeByte((byte) (favorite ? 1 : 0));
     }
 
     public boolean isFavorite() {

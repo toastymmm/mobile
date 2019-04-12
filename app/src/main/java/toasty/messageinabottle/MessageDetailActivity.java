@@ -34,7 +34,7 @@ public class MessageDetailActivity extends AppCompatActivity implements DialogIn
         fab.setOnClickListener(view -> {
             LiveBackend backend = LiveBackend.getInstance(this);
             ToggleFavoriteTask toggleFavoriteTask = new ToggleFavoriteTask(backend);
-            toggleFavoriteTask.doInBackground(message);
+            toggleFavoriteTask.execute(message);
         });
 
         TextView contents = findViewById(R.id.message_detail_message_contents);
@@ -50,6 +50,7 @@ public class MessageDetailActivity extends AppCompatActivity implements DialogIn
             contents.setText(message.getMsg());
             author.setText(message.getAuthor().getUsername());
             date.setText(message.getCreated().toString());
+            updateFloatingActionButtonIcon(message);
         }
 
         reportButton.setOnClickListener((v) -> {
