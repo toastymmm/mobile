@@ -38,7 +38,8 @@ public class RemoteMessage {
                 ),
                 new User(creator),
                 ISO8601.parse(feature.properties.date),
-                false
+                false,
+                feature.properties.numReports
         );
     }
 }

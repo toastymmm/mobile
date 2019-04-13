@@ -189,7 +189,7 @@ public class MessageDetailActivity extends AppCompatActivity implements DialogIn
         @Override
         protected Void doInBackground(Message... messages) {
             try {
-                // TODO send report to backend
+                backend.report(message);
             } catch (Exception e) {
                 taskFailedException = e;
             }

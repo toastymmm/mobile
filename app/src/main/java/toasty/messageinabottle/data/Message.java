@@ -34,18 +34,20 @@ public class Message extends GeoPoint implements Parcelable {
     private final User author;
     private final Date created;
     private boolean favorite;
+    private int reports;
 
-    public Message(String id, String msg, GeoPoint point, User author, Date created, boolean favorite) {
+    public Message(String id, String msg, GeoPoint point, User author, Date created, boolean favorite, int reports) {
         super(point);
         this.id = id;
         this.msg = msg;
         this.author = author;
         this.created = created;
         this.favorite = favorite;
+        this.reports = reports;
     }
 
     public Message(Parcel in) {
-        this(in.readString(), in.readString(), GeoPoint.CREATOR.createFromParcel(in), User.CREATOR.createFromParcel(in), (Date) in.readSerializable(), in.readByte() == (byte) 1);
+        this(in.readString(), in.readString(), GeoPoint.CREATOR.createFromParcel(in), User.CREATOR.createFromParcel(in), (Date) in.readSerializable(), in.readByte() == (byte) 1, in.readInt());
     }
 
     public String getID() {
@@ -75,6 +77,7 @@ public class Message extends GeoPoint implements Parcelable {
         if (!super.equals(o)) return false;
         Message message = (Message) o;
         return favorite == message.favorite &&
+                reports == message.reports &&
                 Objects.equals(id, message.id) &&
                 Objects.equals(msg, message.msg) &&
                 Objects.equals(author, message.author) &&
@@ -83,7 +86,7 @@ public class Message extends GeoPoint implements Parcelable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), id, msg, author, created, favorite);
+        return Objects.hash(super.hashCode(), id, msg, author, created, favorite, reports);
     }
 
     @Override
@@ -99,6 +102,7 @@ public class Message extends GeoPoint implements Parcelable {
         author.writeToParcel(out, flags);
         out.writeSerializable(created);
         out.writeByte((byte) (favorite ? 1 : 0));
+        out.writeInt(reports);
     }
 
     public boolean isFavorite() {
@@ -107,6 +111,10 @@ public class Message extends GeoPoint implements Parcelable {
 
     public void setFavorite(boolean favorite) {
         this.favorite = favorite;
+    }
+
+    public void incrementReports() {
+        reports++;
     }
 
     public String toRemoteJson() {
@@ -119,7 +127,7 @@ public class Message extends GeoPoint implements Parcelable {
         remoteMessage.feature.properties.text = msg;
         remoteMessage.feature.properties.category = "General"; // TODO categories
         remoteMessage.feature.properties.date = RemoteMessage.ISO8601.format(created);
-        remoteMessage.feature.properties.numReports = 0; // TODO keep track of reports
+        remoteMessage.feature.properties.numReports = reports;
         remoteMessage.feature.geometry = Geometry.fromGeoPoint(this);
 
         Gson gson = new Gson();

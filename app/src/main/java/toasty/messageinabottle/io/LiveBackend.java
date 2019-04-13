@@ -343,6 +343,11 @@ public class LiveBackend {
         }
     }
 
+    public void report(Message message) throws IOException {
+        message.incrementReports();
+        editMessage(message);
+    }
+
     private String getUserIDCookieValue() {
         List<DatabaseCookie> cookieList = CookieDatabaseAccessor.getCookieDatabase(ctx).databaseCookieDao().find("userid");
         if (cookieList.size() != 1)

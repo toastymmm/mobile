@@ -94,7 +94,7 @@ public class CreateMessageActivity extends AppCompatActivity {
             if (givenMessage == null) {
                 // TODO add category to the the message
                 // TODO id and username are wrong
-                Message message = new Message("", editTextContent, lastKnownLocation, new User("me"), new Date(), false);
+                Message message = new Message("", editTextContent, lastKnownLocation, new User("me"), new Date(), false, 0);
 
                 LiveBackend backend = LiveBackend.getInstance(this);
                 CreateMessageTask createMessageTask = new CreateMessageTask(backend, true);
