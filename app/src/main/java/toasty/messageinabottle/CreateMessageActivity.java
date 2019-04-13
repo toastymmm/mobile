@@ -24,6 +24,11 @@ import toasty.messageinabottle.io.LiveBackend;
 public class CreateMessageActivity extends AppCompatActivity {
 
     public static final String LAST_KNOWN_LOCATION = "LAST_KNOWN_LOCATION";
+    public static final String REQUEST_KEY = "REQUEST_KEY";
+    public static final String MESSAGE_KEY = "MESSAGE_KEY";
+    public static final int CREATE_REQUEST = 0;
+    public static final int EDIT_REQUEST = 1;
+
     public static final String[] CATEGORY_CHOICES = new String[]{
             "General",
             "Breaking Bad Habits",
@@ -55,7 +60,20 @@ public class CreateMessageActivity extends AppCompatActivity {
 
         EditText messageEditText = findViewById(R.id.messageEditText);
 
-        GeoPoint lastKnownLocation = getIntent().getParcelableExtra(LAST_KNOWN_LOCATION);
+        GeoPoint providedLocation = null;
+        Message messageToEdit = null;
+        int request = getIntent().getIntExtra(REQUEST_KEY, CREATE_REQUEST);
+        switch (request) {
+            case CREATE_REQUEST:
+                providedLocation = getIntent().getParcelableExtra(LAST_KNOWN_LOCATION);
+                break;
+            case EDIT_REQUEST:
+                messageToEdit = getIntent().getParcelableExtra(MESSAGE_KEY);
+                break;
+            default:
+                throw new IllegalStateException("invalid request code (" + request + ") passed to CreateMessageActivity");
+        }
+        GeoPoint lastKnownLocation = providedLocation;
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(view -> {

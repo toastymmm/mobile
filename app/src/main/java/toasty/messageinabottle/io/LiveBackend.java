@@ -317,4 +317,20 @@ public class LiveBackend {
             throw new RuntimeException("Too many userid cookies");
         return cookieList.get(0).value;
     }
+
+    public void delete(Message message) throws IOException {
+        Request req = new Request.Builder()
+                .url("http://toastymmm.hopto.org/api/message/" + message.getID())
+                .delete()
+                .build();
+
+        try (Response response = client.newCall(req).execute()) {
+            if (response.code() != 200)
+                throw new IOException("Server returned invalid code: " + response.code());
+
+            // TODO remove after the favorites bug is fixed:
+            // https://github.com/toastymmm/server/issues/35
+            unmarkFavorite(message);
+        }
+    }
 }

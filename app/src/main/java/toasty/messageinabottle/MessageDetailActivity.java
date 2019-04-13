@@ -2,11 +2,17 @@ package toasty.messageinabottle;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -95,6 +101,34 @@ public class MessageDetailActivity extends AppCompatActivity implements DialogIn
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.activity_detail_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.edit_menu_item:
+                Intent intent = new Intent(this, CreateMessageActivity.class);
+                intent.putExtra(CreateMessageActivity.REQUEST_KEY, CreateMessageActivity.EDIT_REQUEST);
+                intent.putExtra(CreateMessageActivity.MESSAGE_KEY, (Parcelable) message);
+                startActivity(intent);
+                finish();
+                break;
+            case R.id.delete_menu_item:
+                LiveBackend backend = LiveBackend.getInstance(this);
+                DeleteMessageTask deleteMessageTask = new DeleteMessageTask(backend, message);
+                deleteMessageTask.execute();
+                break;
+            default:
+                return super.onContextItemSelected(item);
+        }
+        return true;
+    }
+
     private class ReportMessageTask extends AsyncTask<Message, Void, Void> {
 
         private final LiveBackend backend;
@@ -164,6 +198,38 @@ public class MessageDetailActivity extends AppCompatActivity implements DialogIn
             Log.i("TOAST", "Marking the message as: " + success);
             taskMessage.setFavorite(success);
             updateFloatingActionButtonIcon(taskMessage);
+        }
+    }
+
+    private class DeleteMessageTask extends AsyncTask<Void, Void, Void> {
+
+        private final LiveBackend backend;
+        private final Message message;
+        private Exception taskFailedException;
+
+        public DeleteMessageTask(LiveBackend backend, Message message) {
+            this.backend = backend;
+            this.message = message;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                backend.delete(message);
+            } catch (Exception e) {
+                taskFailedException = e;
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            if (taskFailedException != null) {
+                Toast.makeText(MessageDetailActivity.this, "Failed to delete message", Toast.LENGTH_LONG).show();
+                return;
+            }
+            Toast.makeText(MessageDetailActivity.this, "Message deleted!", Toast.LENGTH_LONG).show();
+            finish();
         }
     }
 }
