@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import toasty.messageinabottle.data.Message;
+import toasty.messageinabottle.data.UserIDWrapper;
 
 public class MessageManager implements IMyLocationConsumer {
 
@@ -21,10 +22,12 @@ public class MessageManager implements IMyLocationConsumer {
     private final List<BottleMarker> activeMarkers = new ArrayList<>();
     private GeoPoint lastKnownLocation;
     private final WatchableMyLocationOverlay locationOverlay;
+    private final UserIDWrapper userIDWrapper;
 
-    public MessageManager(MapView mapView, WatchableMyLocationOverlay locationOverlay) {
+    public MessageManager(MapView mapView, WatchableMyLocationOverlay locationOverlay, UserIDWrapper userIDWrapper) {
         this.mapView = mapView;
         this.locationOverlay = locationOverlay;
+        this.userIDWrapper = userIDWrapper;
     }
 
     @Override
@@ -43,7 +46,7 @@ public class MessageManager implements IMyLocationConsumer {
         activeMarkers.clear();
 
         for (Message message : messages) {
-            BottleMarker bottleMarker = new BottleMarker(mapView, message);
+            BottleMarker bottleMarker = new BottleMarker(mapView, message, userIDWrapper);
             activeMarkers.add(bottleMarker);
 
             // Do a range update so that the markers aren't waiting on the next GPS tick

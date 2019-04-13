@@ -20,6 +20,7 @@ import toasty.messageinabottle.io.UsernameFetchTask;
 
 public class SavedMessagesActivity extends AppCompatActivity {
 
+    public static final String USER_ID_KEY = "USER_ID_KEY";
     private final List<Message> activeMessages = new ArrayList<>();
     private MessagePreviewAdapter messagePreviewAdapter;
 
@@ -33,7 +34,8 @@ public class SavedMessagesActivity extends AppCompatActivity {
         LinearLayoutManager layoutManger = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManger);
 
-        messagePreviewAdapter = new MessagePreviewAdapter(activeMessages);
+        String userID = getIntent().getStringExtra(USER_ID_KEY);
+        messagePreviewAdapter = new MessagePreviewAdapter(activeMessages, userID);
         recyclerView.setAdapter(messagePreviewAdapter);
     }
 

@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -47,6 +46,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import toasty.messageinabottle.data.Message;
+import toasty.messageinabottle.data.UserIDWrapper;
 import toasty.messageinabottle.data.cookie.CookieDatabaseAccessor;
 import toasty.messageinabottle.data.cookie.DatabaseCookieDao;
 import toasty.messageinabottle.io.HeartbeatRunnable;
@@ -66,10 +66,10 @@ public class MapActivity extends AppCompatActivity
     public static final String LOGGED_IN_STATE_KEY = "LOGGED_IN";
     public static final String USER_ID_KEY = "USER_ID";
 
+    private UserIDWrapper userIDWrapper = new UserIDWrapper();
+
     private MapView mapView;
 
-    private AtomicBoolean loggedIn = new AtomicBoolean(false);
-    private String userID = "";
     private MenuItem loginMenuItem;
     private MenuItem logoutMenuItem;
     private MenuItem savedMenuItem;
@@ -97,7 +97,7 @@ public class MapActivity extends AppCompatActivity
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(view -> {
-            if (loggedIn.get()) {
+            if (userIDWrapper.isLoggedIn()) {
                 Location lastKnownLocation = locationProvider.getLastKnownLocation();
                 if (lastKnownLocation == null) {
                     Toast.makeText(ctx, "Wait for location service.", Toast.LENGTH_LONG).show();
@@ -145,7 +145,7 @@ public class MapActivity extends AppCompatActivity
             return v.performClick();
         });
 
-        messageManager = new MessageManager(mapView, locationOverlay);
+        messageManager = new MessageManager(mapView, locationOverlay, userIDWrapper);
         locationOverlay.addConsumer(messageManager);
         uiThreadMessageHandler = new Handler(Looper.getMainLooper()) {
             @Override
@@ -161,7 +161,7 @@ public class MapActivity extends AppCompatActivity
         Handler animationHandler = new Handler(Looper.getMainLooper());
         locationOverlay.runOnFirstFix(() -> {
             // Update the messages as soon as we get a location
-            executor.execute(new HeartbeatRunnable(ctx, uiThreadMessageHandler, locationProvider, loggedIn));
+            executor.execute(new HeartbeatRunnable(ctx, uiThreadMessageHandler, locationProvider, userIDWrapper));
             // Move the map to where the new location is
             animationHandler.post(() -> {
                 mapView.getController().setCenter(locationOverlay.getMyLocation());
@@ -180,13 +180,13 @@ public class MapActivity extends AppCompatActivity
     protected void onPause() {
         super.onPause();
 
+        mapView.onPause();
         locationOverlay.disableMyLocation();
         locationOverlay.disableFollowLocation();
 
         SharedPreferences preferences = getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
-        editor.putBoolean(LOGGED_IN_STATE_KEY, loggedIn.get());
-        editor.putString(USER_ID_KEY, userID);
+        editor.putString(USER_ID_KEY, userIDWrapper.getUserID());
         editor.apply();
 
         Log.i("TOAST", "Shutting down heartbeat thread.");
@@ -197,13 +197,13 @@ public class MapActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
 
+        mapView.onResume();
         locationOverlay.enableMyLocation();
         locationOverlay.enableFollowLocation();
         locationOverlay.setEnableAutoStop(false);
 
         SharedPreferences preferences = getPreferences(Context.MODE_PRIVATE);
-        loggedIn.set(preferences.getBoolean(LOGGED_IN_STATE_KEY, false));
-        userID = preferences.getString(USER_ID_KEY, "");
+        userIDWrapper.setUserID(preferences.getString(USER_ID_KEY, null));
         updateLoginVisibility();
 
         if (executor == null || executor.isShutdown()) {
@@ -211,7 +211,7 @@ public class MapActivity extends AppCompatActivity
         }
         Log.i("TOAST", "Setting up heartbeat thread.");
         executor.scheduleAtFixedRate(
-                new HeartbeatRunnable(getApplicationContext(), uiThreadMessageHandler, locationProvider, loggedIn),
+                new HeartbeatRunnable(getApplicationContext(), uiThreadMessageHandler, locationProvider, userIDWrapper),
                 0, 5, TimeUnit.SECONDS);
 
         ensureLocationPermission();
@@ -220,15 +220,13 @@ public class MapActivity extends AppCompatActivity
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putBoolean(LOGGED_IN_STATE_KEY, loggedIn.get());
-        outState.putString(USER_ID_KEY, userID);
+        outState.putString(USER_ID_KEY, userIDWrapper.getUserID());
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        loggedIn.set(savedInstanceState.getBoolean(LOGGED_IN_STATE_KEY));
-        userID = savedInstanceState.getString(USER_ID_KEY);
+        userIDWrapper.setUserID(savedInstanceState.getString(USER_ID_KEY));
         updateLoginVisibility();
     }
 
@@ -258,13 +256,15 @@ public class MapActivity extends AppCompatActivity
                 cookieDao.remove("sid");
             }).start();
 
-            loggedIn.set(false);
+            userIDWrapper.logout();
             updateLoginVisibility();
         } else if (id == R.id.history) {
             Intent intent = new Intent(this, MessageHistoryActivity.class);
+            intent.putExtra(MessageHistoryActivity.USER_ID_KEY, userIDWrapper.getUserID());
             startActivity(intent);
         } else if (id == R.id.saved) {
             Intent intent = new Intent(this, SavedMessagesActivity.class);
+            intent.putExtra(SavedMessagesActivity.USER_ID_KEY, userIDWrapper.getUserID());
             startActivity(intent);
         } else if (id == R.id.about) {
             Intent intent = new Intent(this, AboutActivity.class);
@@ -283,21 +283,20 @@ public class MapActivity extends AppCompatActivity
         if (requestCode == LOGIN_REQUEST_CODE && resultCode == LoginActivity.LOGIN_SUCCESS) {
             if (data == null)
                 throw new RuntimeException("Unable to get userID");
-            userID = data.getStringExtra(USER_ID_KEY);
+            userIDWrapper.setUserID(data.getStringExtra(USER_ID_KEY));
             Toast.makeText(this, "Logged in", Toast.LENGTH_LONG).show();
-            loggedIn.set(true);
             getPreferences(Activity.MODE_PRIVATE).edit()
-                    .putBoolean(LOGGED_IN_STATE_KEY, loggedIn.get())
-                    .putString(USER_ID_KEY, userID)
+                    .putString(USER_ID_KEY, userIDWrapper.getUserID())
                     .apply();
         }
     }
 
     private void updateLoginVisibility() {
-        loginMenuItem.setVisible(!loggedIn.get());
-        logoutMenuItem.setVisible(loggedIn.get());
-        savedMenuItem.setVisible(loggedIn.get());
-        historyMenuItem.setVisible(loggedIn.get());
+        boolean loggedIn = userIDWrapper.isLoggedIn();
+        loginMenuItem.setVisible(!loggedIn);
+        logoutMenuItem.setVisible(loggedIn);
+        savedMenuItem.setVisible(loggedIn);
+        historyMenuItem.setVisible(loggedIn);
     }
 
     private void ensureLocationPermission() {

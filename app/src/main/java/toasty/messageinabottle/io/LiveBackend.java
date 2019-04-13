@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import okhttp3.FormBody;
 import okhttp3.HttpUrl;
@@ -33,6 +32,7 @@ import toasty.messageinabottle.data.cookie.DatabaseCookie;
 import toasty.messageinabottle.data.remote.Favorite;
 import toasty.messageinabottle.data.remote.FullUser;
 import toasty.messageinabottle.data.remote.RemoteMessage;
+import toasty.messageinabottle.exception.MessageDoesNotExistException;
 
 public class LiveBackend {
 
@@ -75,7 +75,7 @@ public class LiveBackend {
         }
     }
 
-    public List<Message> messages(IGeoPoint geoPoint, AtomicBoolean loggedIn) throws IOException {
+    public List<Message> messages(IGeoPoint geoPoint, boolean loggedIn) throws IOException {
         HttpUrl url = HttpUrl.get("http://toastymmm.hopto.org/api/messages")
                 .newBuilder()
                 .addQueryParameter("lat", Double.toString(geoPoint.getLatitude()))
@@ -85,7 +85,7 @@ public class LiveBackend {
         Request req = new Request.Builder().get().url(url).build();
 
         Set<String> favoriteIDs = new HashSet<>();
-        if (loggedIn.get()) {
+        if (loggedIn) {
             for (Message favorite : favorites()) {
                 favoriteIDs.add(favorite.getID());
             }
@@ -222,15 +222,20 @@ public class LiveBackend {
             } catch (ParseException e) {
                 // TODO handle me
                 throw new RuntimeException(e);
+            } catch (MessageDoesNotExistException e) {
+                // Message has been deleted
+                Log.i("TOAST", "Favorite has already been deleted: " + e.getId());
             }
         }
         return result;
     }
 
-    public Message message(String id) throws IOException, ParseException {
+    public Message message(String id) throws IOException, ParseException, MessageDoesNotExistException {
         Request req = new Request.Builder().url("http://toastymmm.hopto.org/api/message/" + id).get().build();
 
         try (Response response = client.newCall(req).execute()) {
+            if (response.code() == 404)
+                throw new MessageDoesNotExistException(id);
             if (response.code() != 200)
                 throw new IOException("Server returned invalid code: " + response.code());
             if (response.body() == null)
@@ -311,11 +316,19 @@ public class LiveBackend {
         }
     }
 
-    private String getUserIDCookieValue() {
-        List<DatabaseCookie> cookieList = CookieDatabaseAccessor.getCookieDatabase(ctx).databaseCookieDao().find("userid");
-        if (cookieList.size() != 1)
-            throw new RuntimeException("Too many userid cookies");
-        return cookieList.get(0).value;
+    public void editMessage(Message message) throws IOException {
+        String json = message.toRemoteJson();
+        RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, json);
+
+        Request req = new Request.Builder()
+                .url("http://toastymmm.hopto.org/api/message/" + message.getID())
+                .patch(body)
+                .build();
+
+        try (Response response = client.newCall(req).execute()) {
+            if (response.code() != 200)
+                throw new IOException("Server returned invalid code: " + response.code());
+        }
     }
 
     public void delete(Message message) throws IOException {
@@ -327,10 +340,13 @@ public class LiveBackend {
         try (Response response = client.newCall(req).execute()) {
             if (response.code() != 200)
                 throw new IOException("Server returned invalid code: " + response.code());
-
-            // TODO remove after the favorites bug is fixed:
-            // https://github.com/toastymmm/server/issues/35
-            unmarkFavorite(message);
         }
+    }
+
+    private String getUserIDCookieValue() {
+        List<DatabaseCookie> cookieList = CookieDatabaseAccessor.getCookieDatabase(ctx).databaseCookieDao().find("userid");
+        if (cookieList.size() != 1)
+            throw new RuntimeException("Too many userid cookies");
+        return cookieList.get(0).value;
     }
 }

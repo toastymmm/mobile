@@ -9,9 +9,9 @@ import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.overlay.mylocation.IMyLocationProvider;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import toasty.messageinabottle.data.Message;
+import toasty.messageinabottle.data.UserIDWrapper;
 
 public class HeartbeatRunnable implements Runnable {
 
@@ -20,13 +20,13 @@ public class HeartbeatRunnable implements Runnable {
     private final LiveBackend backend;
     private final Handler handler;
     private final IMyLocationProvider locationProvider;
-    private final AtomicBoolean loggedIn;
+    private final UserIDWrapper userIDWrapper;
 
-    public HeartbeatRunnable(Context ctx, Handler handler, IMyLocationProvider locationProvider, AtomicBoolean loggedIn) {
+    public HeartbeatRunnable(Context ctx, Handler handler, IMyLocationProvider locationProvider, UserIDWrapper userIDWrapper) {
         backend = LiveBackend.getInstance(ctx);
         this.handler = handler;
         this.locationProvider = locationProvider;
-        this.loggedIn = loggedIn;
+        this.userIDWrapper = userIDWrapper;
     }
 
     @Override
@@ -38,7 +38,7 @@ public class HeartbeatRunnable implements Runnable {
 
         try {
             Log.i("TOAST", "Updating messages...");
-            List<Message> messages = backend.messages(lastKnownGeoPoint, loggedIn);
+            List<Message> messages = backend.messages(lastKnownGeoPoint, userIDWrapper.isLoggedIn());
             Log.i("TOAST", "Received " + messages.size() + " messages.");
             android.os.Message message = handler.obtainMessage(UPDATE_MESSAGE_MANAGER, messages);
             message.sendToTarget();

@@ -30,7 +30,7 @@ public class Message extends GeoPoint implements Parcelable {
     };
 
     private final String id;
-    private final String msg;
+    private String msg;
     private final User author;
     private final Date created;
     private boolean favorite;
@@ -54,6 +54,10 @@ public class Message extends GeoPoint implements Parcelable {
 
     public String getMsg() {
         return msg;
+    }
+
+    public void setMsg(String msg) {
+        this.msg = msg;
     }
 
     public User getAuthor() {
@@ -108,13 +112,14 @@ public class Message extends GeoPoint implements Parcelable {
     public String toRemoteJson() {
         RemoteMessage remoteMessage = new RemoteMessage();
         remoteMessage._id = id;
+        remoteMessage.creator = author.getId();
         remoteMessage.feature = new Feature();
         remoteMessage.feature.type = "Feature";
         remoteMessage.feature.properties = new Properties();
         remoteMessage.feature.properties.text = msg;
         remoteMessage.feature.properties.category = "General"; // TODO categories
         remoteMessage.feature.properties.date = RemoteMessage.ISO8601.format(created);
-        remoteMessage.feature.properties.numReports = 0;
+        remoteMessage.feature.properties.numReports = 0; // TODO keep track of reports
         remoteMessage.feature.geometry = Geometry.fromGeoPoint(this);
 
         Gson gson = new Gson();

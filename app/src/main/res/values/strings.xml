@@ -32,9 +32,12 @@
     <string name="team_toast">Team Toast</string>
     <string name="semester_description">Spring Semester 2019</string>
     <string name="team_members">Charles Bailey (API/Backend)\nJasper Chong (API/Backend)\nNikolaus Dunn (API/Backend/Web)\nBradley Glaser (Mobile/Project Manager)\nDavid Harmeyer(Mobile)\nHeath Milligan (Web)\nSydney Munro (Backend/Web)\nJuan Parra (Web)\nSpencer Ross (Mobile)</string>
-    <string name="title_activity_create_message">CreateMessageActivity</string>
+    <string name="title_activity_create_message">Create Message</string>
+    <string name="title_edit_message">Edit Message</string>
     <string name="must_not_be_empty">Message must not be empty!</string>
+    <string name="delete_button">Delete</string>
     <string name="report_button">Report</string>
+    <string name="delete_confirmation">Delete message?</string>
     <string name="report_confirmation">Report message?</string>
     <string name="cancel_button">Cancel</string>
     <string name="your_message_here">Your Message Here</string>
@@ -47,4 +50,5 @@
     <string name="username">Username</string>
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
+    <string name="report">Report</string>
 </resources>

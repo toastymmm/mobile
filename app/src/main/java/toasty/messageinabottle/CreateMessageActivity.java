@@ -61,19 +61,26 @@ public class CreateMessageActivity extends AppCompatActivity {
         EditText messageEditText = findViewById(R.id.messageEditText);
 
         GeoPoint providedLocation = null;
-        Message messageToEdit = null;
+        Message providedMessage = null;
         int request = getIntent().getIntExtra(REQUEST_KEY, CREATE_REQUEST);
         switch (request) {
             case CREATE_REQUEST:
                 providedLocation = getIntent().getParcelableExtra(LAST_KNOWN_LOCATION);
                 break;
             case EDIT_REQUEST:
-                messageToEdit = getIntent().getParcelableExtra(MESSAGE_KEY);
+                getSupportActionBar().setTitle(R.string.title_edit_message);
+
+                providedMessage = getIntent().getParcelableExtra(MESSAGE_KEY);
+                messageEditText.setText(providedMessage.getMsg());
+                // TODO set category
                 break;
             default:
                 throw new IllegalStateException("invalid request code (" + request + ") passed to CreateMessageActivity");
         }
+
+        // Stupid java requiring lambda references to be final
         GeoPoint lastKnownLocation = providedLocation;
+        Message givenMessage = providedMessage;
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(view -> {
@@ -84,23 +91,33 @@ public class CreateMessageActivity extends AppCompatActivity {
                 return;
             }
 
-            // TODO add category to the the message
-            // TODO id and username are wrong
-            Message message = new Message("", editTextContent, lastKnownLocation, new User("me"), new Date(), false);
+            if (givenMessage == null) {
+                // TODO add category to the the message
+                // TODO id and username are wrong
+                Message message = new Message("", editTextContent, lastKnownLocation, new User("me"), new Date(), false);
 
-            LiveBackend backend = LiveBackend.getInstance(this);
-            CreateMessageTask createMessageTask = new CreateMessageTask(backend);
-            createMessageTask.execute(message);
+                LiveBackend backend = LiveBackend.getInstance(this);
+                CreateMessageTask createMessageTask = new CreateMessageTask(backend, true);
+                createMessageTask.execute(message);
+            } else {
+                givenMessage.setMsg(editTextContent);
+                LiveBackend backend = LiveBackend.getInstance(this);
+
+                CreateMessageTask createMessageTask = new CreateMessageTask(backend, false);
+                createMessageTask.execute(givenMessage);
+            }
         });
     }
 
     private class CreateMessageTask extends AsyncTask<Message, Void, Void> {
 
         private final LiveBackend backend;
+        private final boolean create;
         private Exception taskFailedException;
 
-        public CreateMessageTask(LiveBackend backend) {
+        public CreateMessageTask(LiveBackend backend, boolean create) {
             this.backend = backend;
+            this.create = create;
         }
 
         @Override
@@ -110,7 +127,11 @@ public class CreateMessageActivity extends AppCompatActivity {
             Message message = messages[0];
 
             try {
-                backend.createMessage(message);
+                if (create) {
+                    backend.createMessage(message);
+                } else {
+                    backend.editMessage(message);
+                }
             } catch (Exception e) {
                 taskFailedException = e;
             }
@@ -124,7 +145,11 @@ public class CreateMessageActivity extends AppCompatActivity {
                 // TODO handle message creation failure
                 return;
             }
-            Toast.makeText(getApplicationContext(), "Message created!", Toast.LENGTH_SHORT).show();
+            if (create) {
+                Toast.makeText(getApplicationContext(), "Message created!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getApplicationContext(), "Message updated!", Toast.LENGTH_SHORT).show();
+            }
             finish();
         }
     }

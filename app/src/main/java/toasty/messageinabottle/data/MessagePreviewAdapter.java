@@ -18,9 +18,11 @@ import toasty.messageinabottle.R;
 public class MessagePreviewAdapter extends RecyclerView.Adapter<MessagePreviewAdapter.MessagePreviewViewHolder> {
 
     private final List<Message> messages;
+    private final String userID;
 
-    public MessagePreviewAdapter(List<Message> messages) {
+    public MessagePreviewAdapter(List<Message> messages, String userID) {
         this.messages = messages;
+        this.userID = userID;
     }
 
     @NonNull
@@ -71,6 +73,7 @@ public class MessagePreviewAdapter extends RecyclerView.Adapter<MessagePreviewAd
             Message message = messages.get(i);
             Intent intent = new Intent(ctx, MessageDetailActivity.class);
             intent.putExtra(MessageDetailActivity.MESSAGE_KEY, (Parcelable) message);
+            intent.putExtra(MessageDetailActivity.USER_ID_KEY, userID);
             ctx.startActivity(intent);
         }
     }
