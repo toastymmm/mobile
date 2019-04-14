@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import okhttp3.ConnectionSpec;
 import okhttp3.FormBody;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
@@ -53,6 +54,7 @@ public class LiveBackend {
         PersistentCookieJar cookieJar = new PersistentCookieJar(ctx);
         client = new OkHttpClient.Builder()
                 .readTimeout(0, TimeUnit.MILLISECONDS)
+                .connectionSpecs(Arrays.asList(ConnectionSpec.CLEARTEXT))
                 .addInterceptor(chain -> {
                     Request request = chain.request();
                     Log.i("TOAST_NETWORK", "sending: " + request.toString());

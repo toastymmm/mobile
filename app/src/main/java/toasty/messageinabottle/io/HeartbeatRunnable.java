@@ -16,6 +16,7 @@ import toasty.messageinabottle.data.UserIDWrapper;
 public class HeartbeatRunnable implements Runnable {
 
     public static final int UPDATE_MESSAGE_MANAGER = 0;
+    public static final int EXCEPTION_ENCOUNTERED = 1;
 
     private final LiveBackend backend;
     private final Handler handler;
@@ -36,14 +37,16 @@ public class HeartbeatRunnable implements Runnable {
             return;
         GeoPoint lastKnownGeoPoint = new GeoPoint(lastKnownLocation);
 
+        android.os.Message message;
         try {
             Log.i("TOAST", "Updating messages...");
             List<Message> messages = backend.messages(lastKnownGeoPoint, userIDWrapper.isLoggedIn());
             Log.i("TOAST", "Received " + messages.size() + " messages.");
-            android.os.Message message = handler.obtainMessage(UPDATE_MESSAGE_MANAGER, messages);
-            message.sendToTarget();
+            message = handler.obtainMessage(UPDATE_MESSAGE_MANAGER, messages);
         } catch (Exception e) {
             Log.i("TOAST", "Updating messages failed!", e);
+            message = handler.obtainMessage(EXCEPTION_ENCOUNTERED, e);
         }
+        message.sendToTarget();
     }
 }

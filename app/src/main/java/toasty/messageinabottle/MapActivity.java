@@ -150,10 +150,19 @@ public class MapActivity extends AppCompatActivity
         uiThreadMessageHandler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(android.os.Message msg) {
-                @SuppressWarnings("unchecked")
-                List<Message> messages = (List<Message>) msg.obj;
-                Log.i("TOAST", "Updating the active markers.");
-                messageManager.replaceActiveMarkers(messages);
+                switch (msg.what) {
+                    case HeartbeatRunnable.UPDATE_MESSAGE_MANAGER:
+                        @SuppressWarnings("unchecked")
+                        List<Message> messages = (List<Message>) msg.obj;
+                        Log.i("TOAST", "Updating the active markers.");
+                        messageManager.replaceActiveMarkers(messages);
+                        break;
+                    case HeartbeatRunnable.EXCEPTION_ENCOUNTERED:
+                        Toast.makeText(ctx, "An exception occurred while loading messages.", Toast.LENGTH_SHORT).show();
+                        break;
+                    default:
+                        throw new IllegalStateException("UI thread got an invalid message");
+                }
             }
         };
 
