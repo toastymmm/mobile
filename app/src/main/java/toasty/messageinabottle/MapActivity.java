@@ -49,6 +49,7 @@ import toasty.messageinabottle.data.Message;
 import toasty.messageinabottle.data.UserIDWrapper;
 import toasty.messageinabottle.data.cookie.CookieDatabaseAccessor;
 import toasty.messageinabottle.data.cookie.DatabaseCookieDao;
+import toasty.messageinabottle.exception.GlobalExceptionCache;
 import toasty.messageinabottle.io.HeartbeatRunnable;
 import toasty.messageinabottle.map.DoubleTapGestureListener;
 import toasty.messageinabottle.map.MessageManager;
@@ -159,6 +160,7 @@ public class MapActivity extends AppCompatActivity
                         break;
                     case HeartbeatRunnable.EXCEPTION_ENCOUNTERED:
                         Toast.makeText(ctx, "An exception occurred while loading messages.", Toast.LENGTH_SHORT).show();
+                        GlobalExceptionCache.post("Heartbeat failure", ((Exception) msg.obj));
                         break;
                     default:
                         throw new IllegalStateException("UI thread got an invalid message");

@@ -20,6 +20,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import toasty.messageinabottle.data.Message;
+import toasty.messageinabottle.exception.GlobalExceptionCache;
 import toasty.messageinabottle.io.LiveBackend;
 import toasty.messageinabottle.io.UsernameFetchTask;
 
@@ -199,9 +200,12 @@ public class MessageDetailActivity extends AppCompatActivity implements DialogIn
         @Override
         protected void onPostExecute(Void aVoid) {
             if (taskFailedException != null) {
-                // TODO notify the user
+                Toast.makeText(getApplicationContext(), "Failed to report message", Toast.LENGTH_SHORT).show();
+                GlobalExceptionCache.post("Report task failure", taskFailedException);
                 return;
             }
+            Toast.makeText(getApplicationContext(), "Reported message", Toast.LENGTH_SHORT).show();
+            finish();
         }
     }
 
@@ -240,7 +244,8 @@ public class MessageDetailActivity extends AppCompatActivity implements DialogIn
         protected void onPostExecute(Boolean success) {
             if (taskFailedException != null) {
                 Log.i("TOAST", "Failed to do favorite operation", taskFailedException);
-                // TODO notify the user
+                Toast.makeText(getApplicationContext(), "Failed to favorite task", Toast.LENGTH_SHORT).show();
+                GlobalExceptionCache.post("Favorite task failure", taskFailedException);
                 return;
             }
             Log.i("TOAST", "Marking the message as: " + success);
@@ -273,7 +278,9 @@ public class MessageDetailActivity extends AppCompatActivity implements DialogIn
         @Override
         protected void onPostExecute(Void aVoid) {
             if (taskFailedException != null) {
+                Log.i("TOAST", "Failed to do delete operation", taskFailedException);
                 Toast.makeText(MessageDetailActivity.this, "Failed to delete message", Toast.LENGTH_LONG).show();
+                GlobalExceptionCache.post("Delete task failure", taskFailedException);
                 return;
             }
             Toast.makeText(MessageDetailActivity.this, "Message deleted!", Toast.LENGTH_LONG).show();

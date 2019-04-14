@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import toasty.messageinabottle.data.LoginResult;
+import toasty.messageinabottle.exception.GlobalExceptionCache;
 import toasty.messageinabottle.io.LiveBackend;
 
 /**
@@ -147,6 +148,7 @@ public class LoginActivity extends AppCompatActivity {
 
             if (taskFailedException != null) {
                 Toast.makeText(LoginActivity.this, "Exception while performing network request.", Toast.LENGTH_LONG).show();
+                GlobalExceptionCache.post("Login failed", taskFailedException);
                 return;
             }
 

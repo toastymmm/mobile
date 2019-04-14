@@ -21,7 +21,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-        <activity android:name=".ErrorActivity"></activity>
+        <activity
+            android:name=".ErrorActivity"
+            android:label="Debug Error Messages" />
         <activity
             android:name=".CreateMessageActivity"
             android:label="@string/title_activity_create_message"

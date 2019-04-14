@@ -12,6 +12,7 @@ import java.util.List;
 
 import toasty.messageinabottle.data.Message;
 import toasty.messageinabottle.data.UserIDWrapper;
+import toasty.messageinabottle.exception.GlobalExceptionCache;
 
 public class HeartbeatRunnable implements Runnable {
 
@@ -45,6 +46,7 @@ public class HeartbeatRunnable implements Runnable {
             message = handler.obtainMessage(UPDATE_MESSAGE_MANAGER, messages);
         } catch (Exception e) {
             Log.i("TOAST", "Updating messages failed!", e);
+            GlobalExceptionCache.post("Updating messages failed", e);
             message = handler.obtainMessage(EXCEPTION_ENCOUNTERED, e);
         }
         message.sendToTarget();

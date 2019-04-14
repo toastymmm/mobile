@@ -4,6 +4,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import toasty.messageinabottle.data.Message;
+import toasty.messageinabottle.exception.GlobalExceptionCache;
 
 public class UsernameFetchTask extends AsyncTask<Void, Void, String> {
 
@@ -23,6 +24,7 @@ public class UsernameFetchTask extends AsyncTask<Void, Void, String> {
             return backend.username(message.getAuthor().getId());
         } catch (Exception e) {
             Log.i("TOAST", "Failed while trying to get a username", e);
+            GlobalExceptionCache.post("Failed while getting a username", e);
             return null;
         }
     }

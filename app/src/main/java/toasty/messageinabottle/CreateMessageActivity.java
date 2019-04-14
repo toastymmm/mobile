@@ -19,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import toasty.messageinabottle.data.Message;
 import toasty.messageinabottle.data.User;
+import toasty.messageinabottle.exception.GlobalExceptionCache;
 import toasty.messageinabottle.io.LiveBackend;
 
 public class CreateMessageActivity extends AppCompatActivity {
@@ -142,7 +143,8 @@ public class CreateMessageActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void aVoid) {
             if (taskFailedException != null) {
-                // TODO handle message creation failure
+                Toast.makeText(getApplicationContext(), "Failed to create message!", Toast.LENGTH_SHORT).show();
+                GlobalExceptionCache.post("Failed to create message", taskFailedException);
                 return;
             }
             if (create) {

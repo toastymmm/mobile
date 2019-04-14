@@ -25,5 +25,11 @@ public class AboutActivity extends AppCompatActivity {
 
         toastImageView.setOnClickListener(gitHubLaunchClickListener);
         toastTextView.setOnClickListener(gitHubLaunchClickListener);
+
+        toastImageView.setOnLongClickListener(v -> {
+            Intent intent = new Intent(this, ErrorActivity.class);
+            startActivity(intent);
+            return true;
+        });
     }
 }
