@@ -347,7 +347,16 @@ public class LiveBackend {
 
     public void report(Message message) throws IOException {
         message.incrementReports();
-        editMessage(message);
+
+        Request req = new Request.Builder()
+                .url("http://toastymmm.hopto.org/api/report/" + message.getID())
+                .post(RequestBody.create(null, ""))
+                .build();
+
+        try (Response response = client.newCall(req).execute()) {
+            if (response.code() != 200)
+                throw new IOException("Server returned invalid code: " + response.code());
+        }
     }
 
     private String getUserIDCookieValue() {
