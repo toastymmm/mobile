@@ -48,14 +48,12 @@ public class MessagePreviewAdapter extends RecyclerView.Adapter<MessagePreviewAd
         private final TextView messagePreview;
         private final TextView author;
         private final TextView created;
-        private final TextView saved;
 
         public MessagePreviewViewHolder(@NonNull View itemView) {
             super(itemView);
             messagePreview = itemView.findViewById(R.id.preview_message);
             author = itemView.findViewById(R.id.preview_author);
             created = itemView.findViewById(R.id.preview_created);
-            saved = itemView.findViewById(R.id.preview_saved);
             itemView.setOnClickListener(this);
         }
 
@@ -63,7 +61,6 @@ public class MessagePreviewAdapter extends RecyclerView.Adapter<MessagePreviewAd
             messagePreview.setText(message.getMsg());
             author.setText(message.getAuthor().getUsername());
             created.setText(message.getCreated().toString());
-            saved.setText(message.getCreated().toString());
         }
 
         @Override
